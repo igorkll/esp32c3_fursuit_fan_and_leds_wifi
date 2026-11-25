@@ -39,7 +39,19 @@ static void load_config() {
     }
 }
 
-void wait(float milliseconds) {
+static void save_config() {
+    ESP_LOGI(TAG, "saving config...");
+    FILE* file = fopen("/storage/config", "wb");
+    if (file) {
+        fwrite(&currentConfig, 1, sizeof(device_config), file);
+        fclose(file);
+        ESP_LOGI(TAG, "config saved!");
+    } else {
+        ESP_LOGE(TAG, "failed to save config");
+    }
+}
+
+static void wait(float milliseconds) {
     uint32_t ticks = milliseconds / portTICK_PERIOD_MS;
     if (ticks < 1) ticks = 1;
     vTaskDelay(ticks);
@@ -52,7 +64,6 @@ static void deadlock() {
 static void callback_set_fan(void* user_ctx, char* content, size_t len) {
     currentConfig.fan_state = content[0];
     save_config();
-    update_mode();
 }
 
 
