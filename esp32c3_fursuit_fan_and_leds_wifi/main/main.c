@@ -1,7 +1,13 @@
 #include "main.h"
 #include "ledstrip.h"
+#include "fan.h"
+#include "wifi.h"
 
 static const char* TAG = "esp32c3_fursuit_fan_and_leds_wifi";
+
+typedef struct {
+    bool fan;
+} Settings;
 
 static void fan_init() {
     gpio_set_level(PIN_FAN, FAN_DISABLED_LEVEL);
@@ -23,16 +29,16 @@ static void fan_disable() {
 }
 
 void app_main() {
-    fan_init();
-
     ledstrip_init();
     ledstrip_flush();
+
+    fan_init();
+
+    wifi_init();
+    wifi_attachCallback_post("/set_fan", callback_set_fan, NULL);
+    wifi_attachCallback_post("/get_fan", callback_get_fan, NULL);
     
     while (true) {
-        fan_enable();
-        vTaskDelay(pdMS_TO_TICKS(1000));
-
-        fan_disable();
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
