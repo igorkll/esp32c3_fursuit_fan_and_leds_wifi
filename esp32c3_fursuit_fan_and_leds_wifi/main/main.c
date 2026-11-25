@@ -1,4 +1,5 @@
 #include "main.h"
+#include "ledstrip.h"
 
 static const char* TAG = "esp32c3_fursuit_fan_and_leds_wifi";
 
@@ -23,7 +24,9 @@ static void fan_disable() {
 
 void app_main() {
     fan_init();
-    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    ledstrip_init();
+    ledstrip_flush();
     
     while (true) {
         fan_enable();
