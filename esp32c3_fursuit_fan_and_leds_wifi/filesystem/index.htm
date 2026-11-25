@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="icon.png" type="image/x-icon">
+    <title>Strange Piano</title>
+    <style>
+        *, ::after, ::before {
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            background-color: #222222;
+
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 15px;
+
+            position: relative;
+        }
+
+        .controller {
+            border-radius: 8px;
+            background-color: #5a5a5a;
+
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 10px;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+
+            max-width: 500px;
+            max-height: calc(min(1000px, 80%));
+            overflow-y: auto;
+        }
+
+        .container {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+
+            background-color: #333333;
+            padding: 10px;
+            border-radius: 16px;
+        }
+
+        .container-verticle {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .vcontainer {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .piano-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .button {
+            background-color: rgb(212, 212, 212);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.1s;
+            border-radius: 8px;
+            color: #333333;
+            width: 48px;
+            height: 48px;
+        }
+
+        .button:active {
+            background-color: rgb(121, 121, 121);
+        }
+
+        .slider {
+            flex: 1;
+            margin: 0;
+
+            appearance: none;
+            background: transparent;
+        }
+
+        /* Дорожка (полоса) */
+        .slider::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #080808;
+            border-radius: 9999px;
+        }
+
+        /* Бегунок (кнопка) */
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: rgb(212, 212, 212);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin-top: -8px; /* Выравнивание бегунка по центру дорожки */
+            cursor: pointer;
+        }
+
+        .title {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .constsize-title {
+            text-align: start;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            width: 90px;
+        }
+
+        .selecter {
+            all: unset;
+            text-align: center;
+            color: #333333;
+            background-color: rgb(212, 212, 212);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .whitePianoKey {
+            background-color: rgb(255, 255, 255);
+            cursor: pointer;
+            transition: background-color 0.05s;
+            height: 100px;
+            width: 100vw;
+            position: relative;
+            margin-left: 1px;
+            margin-right: 1px;
+
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+        }
+
+        .whitePianoKey_active {
+            background-color: rgb(161, 161, 161);
+        }
+
+        .blackPianoKey {
+            background-color: rgb(0, 0, 0);
+            cursor: pointer;
+            transition: background-color 0.05s;
+            height: 50%;
+            width: 100%;
+            top: 0px;
+            left: 0px;
+            position: absolute;
+            transform: translateX(calc(-50% + -1px));
+
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+        }
+
+        .blackPianoKey_active {
+            background-color: rgb(94, 94, 94);
+        }
+
+        .filler {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: stretch;
+        }
+
+        .filler-line {
+            height: 2px;
+            border-radius: 9999px;
+            width: 100%;
+            background-color: #080808;
+        }
+
+        .bigfont {
+            font-size: 40px;
+        }
+
+        .developer-info {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            height: 50px;
+            width: 100%;
+            max-width: 600px;
+            background-color: rgb(91, 63, 26);
+        }
+
+        .developer-image {
+            height: 100%;
+            aspect-ratio: 1 / 1;
+        }
+
+        .developer-title {
+            text-align: center;
+            flex: 1;
+        }
+
+        .smallfont {
+            font-size: 15px;
+        }
+
+        .size-normalizer {
+            position: relative;
+        }
+
+        .size-normalizer > * {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .colorpicker {
+            all: unset;
+            cursor: pointer;
+            width: 50px;
+            height: 25px;
+        }
+
+        .colorpicker::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .colorpicker::-webkit-color-swatch {
+            border: 2px solid #ffffff;
+            border-radius: 8px;
+        }
+
+        .switch {
+            appearance: none;
+
+            width: 50px;
+            height: 28px;
+
+            background: #ccc;
+            border-radius: 999px;
+
+            position: relative;
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .switch::before {
+            content: "";
+
+            position: absolute;
+
+            width: 22px;
+            height: 22px;
+
+            left: 3px;
+            top: 3px;
+
+            border-radius: 50%;
+            background: white;
+
+            transition: 0.2s;
+        }
+
+        .switch:checked {
+            background: #4caf50;
+        }
+
+        .switch:checked::before {
+            transform: translateX(22px);
+        }
+
+        .enable-switch {
+            appearance: none;
+
+            width: 100px;
+            height: 50px;
+
+            background: #ccc;
+            border-radius: 999px;
+            outline: 2px solid #f5f5f5;
+
+            position: relative;
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .enable-switch::before {
+            content: "";
+
+            position: absolute;
+
+            width: calc(50px - (6px * 2));
+            height: calc(50px - (6px * 2));
+
+            left: 6px;
+            top: 6px;
+
+            border-radius: 50%;
+            background: white;
+
+            transition: 0.2s;
+        }
+
+        .enable-switch:checked {
+            background: #4caf50;
+            outline: 2px solid #61ea68;
+        }
+
+        .enable-switch:checked::before {
+            transform: translateX(calc(100px - 50px));
+        }
+
+        .maincontainer {
+            box-shadow: 0px 0px 16px #4aa54f;
+            background-color: #214e23;
+        }
+
+        .maincontainer-filler-line {
+            background-color: #4aa54f;
+        }
+    </style>
+</head>
+<body>
+    <div class="title bigfont">Strange Piano</div>
+
+    <div class="controller">
+        <div class="container maincontainer">
+            <div class="constsize-title">Enabled</div>
+
+            <div class="filler">
+                <div class="filler-line maincontainer-filler-line"></div>
+            </div>
+
+            <div class="enable-switch-container">
+                <input type="checkbox" id="enable-switch" class="enable-switch">
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="constsize-title">Mode</div>
+
+            <div class="filler">
+                <div class="filler-line"></div>
+            </div>
+
+            <select id="effectsList" class="selecter">
+            </select>
+        </div>
+
+        <div class="container">
+            <div class="constsize-title">Light</div>
+            <input type="range" min="0" max="255" value="0" class="slider" id="light_slider">
+            <button id="light_reset" class="button">↺</button>
+        </div>
+
+        <div class="container">
+            <div class="constsize-title">Speed</div>
+            <input type="range" min="100" max="4000" value="0" class="slider" id="speed_slider">
+            <button id="speed_reset" class="button">↺</button>
+        </div>
+
+        <div class="container">
+            <div class="constsize-title">Effect Radius</div>
+            <input type="range" min="1" max="64" value="8" class="slider" id="eradius_slider">
+            <button id="eradius_reset" class="button">↺</button>
+        </div>
+
+        <div class="container">
+            <div class="constsize-title">Colors</div>
+
+            <div class="filler">
+                <div class="filler-line"></div>
+            </div>
+
+            <div class="vcontainer">
+                <div class="title smallfont">ambient</div>
+                <input class="colorpicker" type="color" id="ambient_color">
+            </div>
+
+            <div class="vcontainer">
+                <div class="title smallfont">primary</div>
+                <input class="colorpicker" type="color" id="primary_color">
+            </div>
+        </div>
+
+        <div class="container container-verticle">
+            <div class="title">Virtual Keyboard</div>
+            <div class="piano-container" style="flex: 1;" id="virtualKeyboard">
+            </div>
+        </div>
+    </div>
+
+    <div class="developer-info">
+        <div class="size-normalizer developer-image">
+            <img src="icon.png"></img>
+        </div>
+        <div class="developer-title smallfont">
+            Сделано лапками выдры Logiкусь
+        </div>
+    </div>
+
+    <script>
+        function send(name, data="") {
+            return fetch(`http://${window.location.hostname}/${name}`, {
+                method: "POST",
+                body: data,
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            });
+        }
+
+        function getByteFromString(str, index=0) {
+            const encoder = new TextEncoder();
+            const byteArray = encoder.encode(str);
+            return byteArray.length > index ? byteArray[index] : 0;
+        }
+
+        function bindSlider(slider, resetButtonName, defaultValue, encodeCallback, endpointBasename) {
+            let endpointWithSave = `${endpointBasename}_and_save`
+
+            let lastExecutionTime = 0;
+            const throttleDelay = 200;
+            slider.oninput = function() {
+                const currentTime = Date.now();
+                if (currentTime - lastExecutionTime >= throttleDelay) {
+                    send(endpointBasename, encodeCallback(slider.value));
+                    lastExecutionTime = currentTime;
+                }
+            }
+
+            slider.addEventListener('mouseup', function() {
+                send(endpointWithSave, encodeCallback(slider.value));
+            });
+
+            slider.addEventListener('touchend', function() {
+                send(endpointWithSave, encodeCallback(slider.value));
+            });
+
+            document.getElementById(resetButtonName).addEventListener('click', () => {
+                slider.value = defaultValue;
+                send(endpointWithSave, encodeCallback(slider.value));
+            });
+        }
+
+        function sliderFormatByte(value) {
+            return new Uint8Array([value])
+        }
+
+        function sliderFormatString(value) {
+            return value.toString()
+        }
+
+        function fetchCallback(name, callback) {
+            fetch(`http://${window.location.hostname}/${name}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok')
+                    }
+                    return response.arrayBuffer()
+                })
+                .then(callback)
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error)
+                })
+        }
+
+        function fetchCallbackText(name, callback) {
+            fetch(`http://${window.location.hostname}/${name}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok')
+                    }
+                    return response.text()
+                })
+                .then(callback)
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error)
+                })
+        }
+
+        const effectsList = document.getElementById('effectsList');
+
+        {
+            const effectsListArray = [
+                "Color",
+                "Rainbox position",
+                "Rainbox center 1",
+                "Rainbox center 2",
+                "Firework 1",
+                "Firework 2",
+                "Rainbox Dynamic"
+            ]
+
+            effectsList.addEventListener("change", () => {
+                console.log(effectsList.value)
+                send("set_mode_number", new Uint8Array([parseInt(effectsList.value)])).then(_ => {
+                    fetchModeDependedData()
+                });
+            });
+
+            effectsListArray.forEach((effectName, index) => {
+                const effectOption = document.createElement("option")
+                effectOption.value = index
+                effectOption.textContent = effectName
+                effectsList.appendChild(effectOption)
+            })
+        }
+
+        const light_slider = document.getElementById("light_slider");
+        bindSlider(light_slider, 'light_reset', 255, sliderFormatByte, "set_light")
+
+        const speed_slider = document.getElementById("speed_slider");
+        bindSlider(speed_slider, 'speed_reset', 1000, sliderFormatString, "set_speed")
+
+        const eradius_slider = document.getElementById("eradius_slider");
+        bindSlider(eradius_slider, 'eradius_reset', 8, sliderFormatByte, "set_effect_radius")
+
+        {
+            const virtualKeyboard = document.getElementById("virtualKeyboard");
+            const pianoKeys = []
+            const octave = [0,1,0,1,0,0,1,0,1,0,1,0]
+            for (let i = 0; i < 5; i++) {
+                pianoKeys.push(...octave);
+            }
+            pianoKeys.push(0);
+
+            let lastWhiteKey
+            for (let i = pianoKeys.length - 1; i >= 0; i--) {
+                const isMinor = pianoKeys[i];
+                const index = i;
+
+                let key = document.createElement("div");
+
+                let baseClassName;
+                if (isMinor === 1) {
+                    baseClassName = "blackPianoKey";
+                    key.classList.add(baseClassName);
+                    lastWhiteKey.appendChild(key);
+                } else {
+                    baseClassName = "whitePianoKey";
+                    key.classList.add(baseClassName);
+                    lastWhiteKey = key;
+                    virtualKeyboard.prepend(key);
+                }
+
+                let activeClassName = baseClassName + "_active";
+
+                key.addEventListener("pointerdown", (e) => {
+                    e.stopPropagation();
+                    key.classList.add(activeClassName);
+                    send("enable_key", new Uint8Array([index]));
+                });
+
+                document.addEventListener("pointerup", () => {
+                    if (key.classList.contains(activeClassName)) {
+                        key.classList.remove(activeClassName);
+                        send("disable_key", new Uint8Array([index]));
+                    }
+                });
+            }
+        }
+
+        let currentColors = [0, 0, 0, 0, 0, 0]
+
+        function updateColors() {
+            send("set_colors", new Uint8Array(currentColors))
+        }
+
+        function hexToRgb(hex) {
+            const r = parseInt(hex.slice(1, 3), 16)
+            const g = parseInt(hex.slice(3, 5), 16)
+            const b = parseInt(hex.slice(5, 7), 16)
+
+            return { r, g, b }
+        }
+
+        function rgbToHex(r, g, b) {
+            const toHex = (v) => {
+                const hex = v.toString(16);
+                return hex.length === 1 ? "0" + hex : hex;
+            };
+
+            return "#" + toHex(r) + toHex(g) + toHex(b);
+        }
+
+        const ambient_color = document.getElementById("ambient_color")
+
+        ambient_color.addEventListener("change", (event) => {
+            let rgb = hexToRgb(event.target.value)
+            currentColors[0] = rgb.r
+            currentColors[1] = rgb.g
+            currentColors[2] = rgb.b
+            updateColors()
+        })
+
+        const primary_color = document.getElementById("primary_color")
+
+        primary_color.addEventListener("change", (event) => {
+            let rgb = hexToRgb(event.target.value)
+            currentColors[3] = rgb.r
+            currentColors[4] = rgb.g
+            currentColors[5] = rgb.b
+            updateColors()
+        })
+
+        function fetchModeDependedData() {
+            fetchCallback("get_light", data => {
+                const bytes = new Uint8Array(data)
+                light_slider.value = bytes[0]
+            })
+
+            fetchCallbackText("get_speed", data => {
+                speed_slider.value = parseInt(data)
+            })
+
+            fetchCallback("get_effect_radius", data => {
+                const bytes = new Uint8Array(data)
+                eradius_slider.value = bytes[0]
+            })
+
+            fetchCallback("get_colors", data => {
+                const bytes = new Uint8Array(data);
+                ambient_color.value = rgbToHex(bytes[0], bytes[1], bytes[2])
+                primary_color.value = rgbToHex(bytes[3], bytes[4], bytes[5])
+            })
+        }
+
+        const enable_switch = document.getElementById("enable-switch")
+
+        enable_switch.addEventListener("change", e => {
+            send("set_enabled", new Uint8Array([enable_switch.checked ? 1 : 0]))
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchCallback("get_mode_number", data => {
+                const bytes = new Uint8Array(data)
+                effectsList.selectedIndex = bytes[0]
+            })
+
+            fetchCallback("get_enabled", data => {
+                const bytes = new Uint8Array(data)
+                enable_switch.checked = bytes[0]
+            })
+
+            fetchModeDependedData()
+        });
+    </script>
+</body>
+</html>

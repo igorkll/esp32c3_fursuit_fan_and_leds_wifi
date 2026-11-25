@@ -11,3 +11,6 @@
 #define LED_REVERSE false
 #define LED_ORDER ledstrip_GRB
 #define LED_FREQ 10000000
+
+#define WIFI_NAME "РЫБА"
+#define WIFI_PASSWORD "11221133"

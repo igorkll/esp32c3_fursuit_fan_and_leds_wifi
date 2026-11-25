@@ -1,5 +1,4 @@
 #include "wifi.h"
-#include "load_config.h"
 #include "filesystem.h"
 #include <esp_wifi.h>
 #include <esp_err.h>
@@ -67,6 +66,8 @@ void wifi_init() {
     wifi_attachCallback_getConst("/", "/storage/index.htm");
     wifi_attachCallback_getConst("/index.html", "/storage/index.htm");
     wifi_attachCallback_getConst("/icon.png", "/storage/icon.png");
+
+    ESP_LOGI(TAG, "wifi & server initialization done!");
 }
 
 int wifi_getUsersCount() {
