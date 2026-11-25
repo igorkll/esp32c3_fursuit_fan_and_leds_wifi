@@ -62,7 +62,7 @@ void app_main() {
     ledstrip_flush();
 
     fan_init();
-    fan_setState(false);
+    fan_setState(currentConfig.fan);
 
     wifi_init();
     //wifi_attachCallback_post("/set_fan", callback_set_fan, NULL);
