@@ -7,14 +7,14 @@
 static const char* TAG = "esp32c3_fursuit_fan_and_leds_wifi";
 
 typedef struct {
-    bool fan;
+    bool fan_state;
 } config_t;
 
 config_t currentConfig;
 static nvs_handle_t nvs;
 
 static const config_t defaultConfig = {
-    .fan = true
+    .fan_state = true
 };
 
 static void nvs_init() {
@@ -49,6 +49,20 @@ static void deadlock() {
     while (true) wait(1000);
 }
 
+static void callback_set_fan(void* user_ctx, char* content, size_t len) {
+    currentConfig.fan_state = content[0];
+    save_config();
+    update_mode();
+}
+
+
+static void* callback_get_fan(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    *retsize = 1;
+    uint8_t* ret = malloc(1);
+    ret[0] = currentConfig->fan_state;
+    return ret;
+}
+
 void app_main() {
     if (!filesystem_init()) {
         ESP_LOGE(TAG, "failed to init filesystem");
@@ -62,11 +76,11 @@ void app_main() {
     ledstrip_flush();
 
     fan_init();
-    fan_setState(currentConfig.fan);
+    fan_setState(currentConfig.fan_state);
 
     wifi_init();
-    //wifi_attachCallback_post("/set_fan", callback_set_fan, NULL);
-    //wifi_attachCallback_post("/get_fan", callback_get_fan, NULL);
+    wifi_attachCallback_post("/set_fan", callback_set_fan, NULL);
+    wifi_attachCallback_get_binary("/get_fan", callback_get_fan, NULL);
     
     while (true) {
         vTaskDelay(pdMS_TO_TICKS(1000));
