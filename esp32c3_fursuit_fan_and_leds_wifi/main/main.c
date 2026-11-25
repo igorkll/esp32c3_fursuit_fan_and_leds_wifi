@@ -2,41 +2,71 @@
 #include "ledstrip.h"
 #include "fan.h"
 #include "wifi.h"
+#include "filesystem.h"
 
 static const char* TAG = "esp32c3_fursuit_fan_and_leds_wifi";
 
 typedef struct {
     bool fan;
-} Settings;
+} config_t;
 
-static void fan_init() {
-    gpio_set_level(PIN_FAN, FAN_DISABLED_LEVEL);
-    gpio_config_t io_conf = {
-        .pin_bit_mask = 1ULL << PIN_FAN,
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLDOWN_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE
-    };
-    gpio_config(&io_conf);
+config_t currentConfig;
+static nvs_handle_t nvs;
+
+static const config_t defaultConfig = {
+    .fan = true
+};
+
+static bool nvs_init() {
+    esp_err_t ret = nvs_flash_init();
+    if (ret != ESP_OK) {
+        nvs_flash_erase();
+        nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(nvs_open("nvs", NVS_READWRITE, &nvs));
 }
 
-static void fan_enable() {
-    gpio_set_level(PIN_FAN, FAN_ENABLED_LEVEL);
+static void load_config() {
+    ESP_LOGI(TAG, "loading config...");
+    FILE* file = fopen("/storage/config", "rb");
+    if (file) {
+        fread(&currentConfig, 1, sizeof(config_t), file);
+        fclose(file);
+        ESP_LOGI(TAG, "config loaded!");
+    } else {
+        memcpy(&currentConfig, &defaultConfig, sizeof(config_t));
+        ESP_LOGI(TAG, "loaded default config!");
+    }
 }
 
-static void fan_disable() {
-    gpio_set_level(PIN_FAN, FAN_DISABLED_LEVEL);
+void wait(float milliseconds) {
+    uint32_t ticks = milliseconds / portTICK_PERIOD_MS;
+    if (ticks < 1) ticks = 1;
+    vTaskDelay(ticks);
+}
+
+static void deadlock() {
+    while (true) wait(1000);
 }
 
 void app_main() {
+    if (!filesystem_init()) {
+        ESP_LOGE(TAG, "failed to init filesystem");
+        deadlock();
+    }
+    
+    nvs_init();
+    load_config();
+
     ledstrip_init();
     ledstrip_flush();
 
     fan_init();
+    fan_setState(false);
 
     wifi_init();
-    wifi_attachCallback_post("/set_fan", callback_set_fan, NULL);
-    wifi_attachCallback_post("/get_fan", callback_get_fan, NULL);
+    //wifi_attachCallback_post("/set_fan", callback_set_fan, NULL);
+    //wifi_attachCallback_post("/get_fan", callback_get_fan, NULL);
     
     while (true) {
         vTaskDelay(pdMS_TO_TICKS(1000));
