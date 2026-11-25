@@ -43,7 +43,7 @@ static void save_config() {
     ESP_LOGI(TAG, "saving config...");
     FILE* file = fopen("/storage/config", "wb");
     if (file) {
-        fwrite(&currentConfig, 1, sizeof(device_config), file);
+        fwrite(&currentConfig, 1, sizeof(config_t), file);
         fclose(file);
         ESP_LOGI(TAG, "config saved!");
     } else {
@@ -70,7 +70,7 @@ static void callback_set_fan(void* user_ctx, char* content, size_t len) {
 static void* callback_get_fan(void* user_ctx, char* content, size_t len, size_t* retsize) {
     *retsize = 1;
     uint8_t* ret = malloc(1);
-    ret[0] = currentConfig->fan_state;
+    ret[0] = currentConfig.fan_state;
     return ret;
 }
 
