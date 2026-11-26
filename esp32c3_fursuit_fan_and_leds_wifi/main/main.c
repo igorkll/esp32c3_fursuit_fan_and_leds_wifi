@@ -21,6 +21,8 @@ typedef struct {
     uint8_t primary_color[3];
     uint8_t other_colors[MAX_LED_COUNT * 3];
     bool other_colors_overwrite[MAX_LED_COUNT];
+
+    bool separate_colors_enabled;
 } config_t;
 
 config_t currentConfig;
@@ -30,7 +32,8 @@ static const config_t defaultConfig = {
     .led_count = DEFAULT_LED_COUNT,
     .led_light = DEFAULT_LIGHT_LEVEL,
     .led_state = true,
-    .fan_state = Fan_state_off
+    .fan_state = Fan_state_off,
+    .separate_colors_enabled = true
 };
 
 static void nvs_init() {
@@ -107,10 +110,12 @@ static void update_ledstrip_state() {
         ledstrip_setLight(currentConfig.led_light);
         ledstrip_clear(currentConfig.primary_color[0], currentConfig.primary_color[1], currentConfig.primary_color[2]);
 
-        for (size_t i = 0; i < currentConfig.led_count; i++) {
-            if (currentConfig.other_colors_overwrite[i]) {
-                size_t ii = i * 3;
-                ledstrip_set(i, currentConfig.other_colors[ii], currentConfig.other_colors[ii + 1], currentConfig.other_colors[ii + 3]);
+        if (currentConfig.separate_colors_enabled) {
+            for (size_t i = 0; i < currentConfig.led_count; i++) {
+                if (currentConfig.other_colors_overwrite[i]) {
+                    size_t ii = i * 3;
+                    ledstrip_set(i, currentConfig.other_colors[ii], currentConfig.other_colors[ii + 1], currentConfig.other_colors[ii + 3]);
+                }
             }
         }
     } else {
@@ -211,6 +216,21 @@ static void* callback_get_led_count(void* user_ctx, char* content, size_t len, s
     return ret;
 }
 
+static void callback_set_separate_enabled(void* user_ctx, char* content, size_t len) {
+    currentConfig.separate_colors_enabled = content[0];
+    ESP_LOGI(TAG, "set separate enabled: %i", currentConfig.separate_colors_enabled);
+    save_config();
+    update_ledstrip_state();
+}
+
+static void* callback_get_separate_enabled(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    ESP_LOGI(TAG, "get separate enabled: %i", currentConfig.separate_colors_enabled);
+    *retsize = 1;
+    uint8_t* ret = malloc(1);
+    ret[0] = currentConfig.separate_colors_enabled;
+    return ret;
+}
+
 void app_main() {
     if (!filesystem_init()) {
         ESP_LOGE(TAG, "failed to init filesystem");
@@ -242,5 +262,10 @@ void app_main() {
 
     wifi_attachCallback_post("/set_led_count", callback_set_led_count, NULL);
     wifi_attachCallback_get_binary("/get_led_count", callback_get_led_count, NULL);
+
+    wifi_attachCallback_post("/set_separate_enabled", callback_set_separate_enabled, NULL);
+    wifi_attachCallback_get_binary("/get_separate_enabled", callback_get_separate_enabled, NULL);
+
+    
 }
 

@@ -417,9 +417,16 @@
             <button class="back-to-main">
                 &lt;
             </button>
+
             <div class="constsize-title">Separate colors</div>
 
-            
+            <div class="filler">
+                <div class="filler-line maincontainer-filler-line"></div>
+            </div>
+
+            <div class="enable-switch-container">
+                <input type="checkbox" id="enable-separate" class="enable-switch">
+            </div>
         </div>
     </div>
 
@@ -598,10 +605,18 @@
 
         // --------------------- enable switch
         
-        const enable_switch = document.getElementById("enable-switch")
+        const enable_switch = document.getElementById("enable-switch");
 
         enable_switch.addEventListener("change", e => {
-            send("set_enabled", new Uint8Array([enable_switch.checked ? 1 : 0]))
+            send("set_enabled", new Uint8Array([enable_switch.checked ? 1 : 0]));
+        });
+
+        // --------------------- enable separate
+
+        const enable_separate = document.getElementById("enable-separate");
+
+        enable_separate.addEventListener("change", e => {
+            send("set_separate_enabled", new Uint8Array([enable_separate.checked ? 1 : 0]))
         });
 
         // --------------------- primary color
@@ -627,7 +642,7 @@
         // --------------------- fetch data
 
         document.addEventListener('DOMContentLoaded', () => {
-            let fetchCounter = 3;
+            let fetchCounter = 4;
             const fetchEnd = () => {
                 fetchCounter = fetchCounter - 1;
                 if (fetchCounter <= 0) {
@@ -638,6 +653,12 @@
             fetchCallbackBinary("get_enabled", data => {
                 const bytes = new Uint8Array(data);
                 enable_switch.checked = bytes[0];
+                fetchEnd();
+            });
+
+            fetchCallbackBinary("get_separate_enabled", data => {
+                const bytes = new Uint8Array(data);
+                enable_separate.checked = bytes[0];
                 fetchEnd();
             });
 
