@@ -19,6 +19,8 @@ typedef struct {
     Fan_state fan_state;
 
     uint8_t primary_color[3];
+    uint8_t other_colors[MAX_LED_COUNT * 3];
+    bool other_colors_overwrite[MAX_LED_COUNT];
 } config_t;
 
 config_t currentConfig;
@@ -26,7 +28,7 @@ static nvs_handle_t nvs;
 
 static const config_t defaultConfig = {
     .led_count = DEFAULT_LED_COUNT,
-    .led_light = DEFAULT_LIGHT_COUNT,
+    .led_light = DEFAULT_LIGHT_LEVEL,
     .led_state = true,
     .fan_state = Fan_state_off
 };
@@ -48,6 +50,7 @@ static void load_config() {
         fclose(file);
         ESP_LOGI(TAG, "config loaded!");
     } else {
+        memset(&currentConfig, 0, sizeof(config_t));
         memcpy(&currentConfig, &defaultConfig, sizeof(config_t));
         ESP_LOGI(TAG, "loaded default config!");
     }
@@ -103,6 +106,13 @@ static void update_ledstrip_state() {
     if (currentConfig.led_state) {
         ledstrip_setLight(currentConfig.led_light);
         ledstrip_clear(currentConfig.primary_color[0], currentConfig.primary_color[1], currentConfig.primary_color[2]);
+
+        for (size_t i = 0; i < currentConfig.led_count; i++) {
+            if (currentConfig.other_colors_overwrite[i]) {
+                size_t ii = i * 3;
+                ledstrip_set(currentConfig.other_colors[ii], currentConfig.other_colors[ii + 1], currentConfig.other_colors[ii + 3]);
+            }
+        }
     } else {
         ledstrip_setLight(0);
         ledstrip_clear(0, 0, 0);
@@ -177,6 +187,30 @@ static void* callback_get_primary_color(void* user_ctx, char* content, size_t le
     return ret;
 }
 
+static void callback_set_led_count(void* user_ctx, char* content, size_t len) {
+    currentConfig.led_count = content[0];
+    if (currentConfig.led_count > MAX_LED_COUNT) currentConfig.led_count = MAX_LED_COUNT;
+
+    for (size_t i = currentConfig.led_count; i < MAX_LED_COUNT; i++) {
+        currentConfig.other_colors_overwrite[i] = false;
+        
+        size_t ii = i * 3;
+        currentConfig.other_colors[ii] = 0;
+        currentConfig.other_colors[ii+1] = 0;
+        currentConfig.other_colors[ii+2] = 0;
+    }
+
+    update_ledstrip_state();
+}
+
+static void* callback_get_led_count(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    *retsize = 2;
+    uint8_t* ret = malloc(2);
+    ret[0] = currentConfig.led_count;
+    ret[1] = MAX_LED_COUNT;
+    return ret;
+}
+
 void app_main() {
     if (!filesystem_init()) {
         ESP_LOGE(TAG, "failed to init filesystem");
@@ -205,5 +239,8 @@ void app_main() {
 
     wifi_attachCallback_post("/set_fan", callback_set_fan, NULL);
     wifi_attachCallback_get_binary("/get_fan", callback_get_fan, NULL);
+
+    wifi_attachCallback_post("/set_led_count", callback_set_led_count, NULL);
+    wifi_attachCallback_get_binary("/get_led_count", callback_get_led_count, NULL);
 }
 
