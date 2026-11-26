@@ -7,7 +7,8 @@
 #define FAN_ENABLED_LEVEL 0
 #define FAN_DISABLED_LEVEL 1
 
-#define LED_COUNT 16
+#define DEFAULT_LED_COUNT 16
+#define MAX_LED_COUNT 255
 #define LED_REVERSE false
 #define LED_ORDER ledstrip_GRB
 #define LED_FREQ 10000000

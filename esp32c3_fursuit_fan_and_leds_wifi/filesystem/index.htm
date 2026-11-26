@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="icon.png" type="image/x-icon">
-    <title>Strange Piano</title>
+    <title>Fursuit controller</title>
     <style>
         *, ::after, ::before {
             box-sizing: border-box;
@@ -80,11 +80,6 @@
             gap: 10px;
         }
 
-        .piano-container {
-            display: flex;
-            justify-content: center;
-        }
-
         .button {
             background-color: rgb(212, 212, 212);
             border: none;
@@ -150,45 +145,6 @@
             background-color: rgb(212, 212, 212);
             border-radius: 8px;
             padding: 15px;
-        }
-
-        .whitePianoKey {
-            background-color: rgb(255, 255, 255);
-            cursor: pointer;
-            transition: background-color 0.05s;
-            height: 100px;
-            width: 100vw;
-            position: relative;
-            margin-left: 1px;
-            margin-right: 1px;
-
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            user-select: none;
-        }
-
-        .whitePianoKey_active {
-            background-color: rgb(161, 161, 161);
-        }
-
-        .blackPianoKey {
-            background-color: rgb(0, 0, 0);
-            cursor: pointer;
-            transition: background-color 0.05s;
-            height: 50%;
-            width: 100%;
-            top: 0px;
-            left: 0px;
-            position: absolute;
-            transform: translateX(calc(-50% + -1px));
-
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            user-select: none;
-        }
-
-        .blackPianoKey_active {
-            background-color: rgb(94, 94, 94);
         }
 
         .filler {
@@ -357,7 +313,7 @@
     </style>
 </head>
 <body>
-    <div class="title bigfont">Strange Piano</div>
+    <div class="title bigfont">Fursuit controller</div>
 
     <div class="controller">
         <div class="container maincontainer">
@@ -373,34 +329,11 @@
         </div>
 
         <div class="container">
-            <div class="constsize-title">Mode</div>
-
-            <div class="filler">
-                <div class="filler-line"></div>
-            </div>
-
-            <select id="effectsList" class="selecter">
-            </select>
-        </div>
-
-        <div class="container">
             <div class="constsize-title">Light</div>
             <input type="range" min="0" max="255" value="0" class="slider" id="light_slider">
             <button id="light_reset" class="button">↺</button>
         </div>
-
-        <div class="container">
-            <div class="constsize-title">Speed</div>
-            <input type="range" min="100" max="4000" value="0" class="slider" id="speed_slider">
-            <button id="speed_reset" class="button">↺</button>
-        </div>
-
-        <div class="container">
-            <div class="constsize-title">Effect Radius</div>
-            <input type="range" min="1" max="64" value="8" class="slider" id="eradius_slider">
-            <button id="eradius_reset" class="button">↺</button>
-        </div>
-
+        
         <div class="container">
             <div class="constsize-title">Colors</div>
 
@@ -411,17 +344,6 @@
             <div class="vcontainer">
                 <div class="title smallfont">ambient</div>
                 <input class="colorpicker" type="color" id="ambient_color">
-            </div>
-
-            <div class="vcontainer">
-                <div class="title smallfont">primary</div>
-                <input class="colorpicker" type="color" id="primary_color">
-            </div>
-        </div>
-
-        <div class="container container-verticle">
-            <div class="title">Virtual Keyboard</div>
-            <div class="piano-container" style="flex: 1;" id="virtualKeyboard">
             </div>
         </div>
     </div>
@@ -487,7 +409,7 @@
             return value.toString()
         }
 
-        function fetchCallback(name, callback) {
+        function fetchCallbackBinary(name, callback) {
             fetch(`http://${window.location.hostname}/${name}`)
                 .then(response => {
                     if (!response.ok) {
@@ -501,7 +423,7 @@
                 })
         }
 
-        function fetchCallbackText(name, callback) {
+        function fetchCallback(name, callback) {
             fetch(`http://${window.location.hostname}/${name}`)
                 .then(response => {
                     if (!response.ok) {
@@ -513,94 +435,6 @@
                 .catch(error => {
                     console.error('There was a problem with the fetch operation:', error)
                 })
-        }
-
-        const effectsList = document.getElementById('effectsList');
-
-        {
-            const effectsListArray = [
-                "Color",
-                "Rainbox position",
-                "Rainbox center 1",
-                "Rainbox center 2",
-                "Firework 1",
-                "Firework 2",
-                "Rainbox Dynamic"
-            ]
-
-            effectsList.addEventListener("change", () => {
-                console.log(effectsList.value)
-                send("set_mode_number", new Uint8Array([parseInt(effectsList.value)])).then(_ => {
-                    fetchModeDependedData()
-                });
-            });
-
-            effectsListArray.forEach((effectName, index) => {
-                const effectOption = document.createElement("option")
-                effectOption.value = index
-                effectOption.textContent = effectName
-                effectsList.appendChild(effectOption)
-            })
-        }
-
-        const light_slider = document.getElementById("light_slider");
-        bindSlider(light_slider, 'light_reset', 255, sliderFormatByte, "set_light")
-
-        const speed_slider = document.getElementById("speed_slider");
-        bindSlider(speed_slider, 'speed_reset', 1000, sliderFormatString, "set_speed")
-
-        const eradius_slider = document.getElementById("eradius_slider");
-        bindSlider(eradius_slider, 'eradius_reset', 8, sliderFormatByte, "set_effect_radius")
-
-        {
-            const virtualKeyboard = document.getElementById("virtualKeyboard");
-            const pianoKeys = []
-            const octave = [0,1,0,1,0,0,1,0,1,0,1,0]
-            for (let i = 0; i < 5; i++) {
-                pianoKeys.push(...octave);
-            }
-            pianoKeys.push(0);
-
-            let lastWhiteKey
-            for (let i = pianoKeys.length - 1; i >= 0; i--) {
-                const isMinor = pianoKeys[i];
-                const index = i;
-
-                let key = document.createElement("div");
-
-                let baseClassName;
-                if (isMinor === 1) {
-                    baseClassName = "blackPianoKey";
-                    key.classList.add(baseClassName);
-                    lastWhiteKey.appendChild(key);
-                } else {
-                    baseClassName = "whitePianoKey";
-                    key.classList.add(baseClassName);
-                    lastWhiteKey = key;
-                    virtualKeyboard.prepend(key);
-                }
-
-                let activeClassName = baseClassName + "_active";
-
-                key.addEventListener("pointerdown", (e) => {
-                    e.stopPropagation();
-                    key.classList.add(activeClassName);
-                    send("enable_key", new Uint8Array([index]));
-                });
-
-                document.addEventListener("pointerup", () => {
-                    if (key.classList.contains(activeClassName)) {
-                        key.classList.remove(activeClassName);
-                        send("disable_key", new Uint8Array([index]));
-                    }
-                });
-            }
-        }
-
-        let currentColors = [0, 0, 0, 0, 0, 0]
-
-        function updateColors() {
-            send("set_colors", new Uint8Array(currentColors))
         }
 
         function hexToRgb(hex) {
@@ -620,60 +454,30 @@
             return "#" + toHex(r) + toHex(g) + toHex(b);
         }
 
-        const ambient_color = document.getElementById("ambient_color")
-
-        ambient_color.addEventListener("change", (event) => {
-            let rgb = hexToRgb(event.target.value)
-            currentColors[0] = rgb.r
-            currentColors[1] = rgb.g
-            currentColors[2] = rgb.b
-            updateColors()
-        })
-
-        const primary_color = document.getElementById("primary_color")
-
-        primary_color.addEventListener("change", (event) => {
-            let rgb = hexToRgb(event.target.value)
-            currentColors[3] = rgb.r
-            currentColors[4] = rgb.g
-            currentColors[5] = rgb.b
-            updateColors()
-        })
-
-        function fetchModeDependedData() {
-            fetchCallback("get_light", data => {
-                const bytes = new Uint8Array(data)
-                light_slider.value = bytes[0]
-            })
-
-            fetchCallbackText("get_speed", data => {
-                speed_slider.value = parseInt(data)
-            })
-
-            fetchCallback("get_effect_radius", data => {
-                const bytes = new Uint8Array(data)
-                eradius_slider.value = bytes[0]
-            })
-
-            fetchCallback("get_colors", data => {
-                const bytes = new Uint8Array(data);
-                ambient_color.value = rgbToHex(bytes[0], bytes[1], bytes[2])
-                primary_color.value = rgbToHex(bytes[3], bytes[4], bytes[5])
-            })
-        }
-
+        // --------------------- enable switch
+        
         const enable_switch = document.getElementById("enable-switch")
 
         enable_switch.addEventListener("change", e => {
             send("set_enabled", new Uint8Array([enable_switch.checked ? 1 : 0]))
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchCallback("get_mode_number", data => {
-                const bytes = new Uint8Array(data)
-                effectsList.selectedIndex = bytes[0]
-            })
+        // --------------------- primary color
+        
+        const primary_color = document.getElementById("primary_color")
+        primary_color.addEventListener("change", (event) => {
+            let rgb = hexToRgb(event.target.value)
+            send("set_colors", new Uint8Array([rgb.r, rgb.g, rgb.b]))
+        })
 
+        // --------------------- light slider
+
+        const light_slider = document.getElementById("light_slider");
+        bindSlider(light_slider, 'light_reset', 255, sliderFormatByte, "set_light")
+
+        // --------------------- fetch data
+
+        document.addEventListener('DOMContentLoaded', () => {
             fetchCallback("get_enabled", data => {
                 const bytes = new Uint8Array(data)
                 enable_switch.checked = bytes[0]

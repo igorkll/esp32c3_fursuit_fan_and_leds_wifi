@@ -6,15 +6,23 @@
 
 static const char* TAG = "esp32c3_fursuit_fan_and_leds_wifi";
 
+typedef enum {
+    Fan_state_off,
+    Fan_state_on,
+    Fan_state_timer
+} Fan_state;
+
 typedef struct {
-    bool fan_state;
+    uint8_t led_count;
+    Fan_state fan_state;
 } config_t;
 
 config_t currentConfig;
 static nvs_handle_t nvs;
 
 static const config_t defaultConfig = {
-    .fan_state = true
+    .led_count = DEFAULT_LED_COUNT,
+    .fan_state = Fan_state_off
 };
 
 static void nvs_init() {
@@ -61,9 +69,38 @@ static void deadlock() {
     while (true) wait(1000);
 }
 
+static void update_fan_state() {
+    switch (currentConfig.fan_state) {
+        case Fan_state_off:
+            fan_setState(false);
+            break;
+
+        case Fan_state_on:
+            fan_setState(true);
+            break;
+
+        case Fan_state_timer:
+            fan_setState(true);
+            break;
+    }
+}
+
+static int16_t old_led_count = -1;
+
+static void update_ledstrip_state() {
+    if (currentConfig.led_count != old_led_count) {
+        ledstrip_setLedsCount(currentConfig.led_count);
+        if (old_led_count < 0) ledstrip_init();
+        old_led_count = currentConfig.led_count;
+    }
+
+    ledstrip_flush();
+}
+
 static void callback_set_fan(void* user_ctx, char* content, size_t len) {
     currentConfig.fan_state = content[0];
     save_config();
+    update_fan_state();
 }
 
 
@@ -83,18 +120,13 @@ void app_main() {
     nvs_init();
     load_config();
 
-    ledstrip_init();
-    ledstrip_flush();
+    update_ledstrip_state();
 
     fan_init();
-    fan_setState(currentConfig.fan_state);
+    update_fan_state();
 
     wifi_init();
     wifi_attachCallback_post("/set_fan", callback_set_fan, NULL);
     wifi_attachCallback_get_binary("/get_fan", callback_get_fan, NULL);
-    
-    while (true) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
 }
 

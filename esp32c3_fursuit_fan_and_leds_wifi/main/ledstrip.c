@@ -5,12 +5,24 @@
 #include <freertos/task.h>
 #include <esp_log.h>
 
-#define LED_BUFFERSIZE (LED_COUNT * 3)
-static uint8_t ledstrip_data[LED_BUFFERSIZE];
+static size_t led_count = 0;
+static size_t buffer_size = 0;
+static uint8_t* ledstrip_data = NULL;
+
 static rmt_channel_handle_t rmt_handle;
 static rmt_encoder_handle_t rmt_encoder = NULL;
 static uint8_t currentLight;
 static const char* TAG = "ledstrip";
+
+void ledstrip_setLedsCount(size_t new_led_count) {
+    led_count = new_led_count;
+    buffer_size = led_count * 3;
+    if (ledstrip_data == NULL) {
+        ledstrip_data = malloc(buffer_size);
+    } else {
+        ledstrip_data = realloc(ledstrip_data, buffer_size);
+    }
+}
 
 void ledstrip_init() {
     ledstrip_clear(0, 0, 0);
@@ -40,14 +52,14 @@ void ledstrip_setLight(uint8_t light) {
 }
 
 void ledstrip_clear(uint8_t r, uint8_t g, uint8_t b) {
-    for (size_t i = 0; i < LED_COUNT; i++) {
+    for (size_t i = 0; i < led_count; i++) {
         ledstrip_set(i, r, g, b);
     }
 }
 
 void ledstrip_set(size_t i, uint8_t r, uint8_t g, uint8_t b) {
     if (LED_REVERSE) {
-        i = LED_COUNT - i - 1;
+        i = led_count - i - 1;
     }
 
     uint8_t v0 = 0;
@@ -98,6 +110,6 @@ void ledstrip_flush() {
     const rmt_transmit_config_t tx_config = {
         .loop_count = 0
     };
-    ESP_ERROR_CHECK(rmt_transmit(rmt_handle, rmt_encoder, ledstrip_data, LED_BUFFERSIZE, &tx_config));
+    ESP_ERROR_CHECK(rmt_transmit(rmt_handle, rmt_encoder, ledstrip_data, buffer_size, &tx_config));
     ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_handle, portMAX_DELAY));
 }
