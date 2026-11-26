@@ -105,6 +105,7 @@ static void update_ledstrip_state() {
         ledstrip_clear(currentConfig.primary_color[0], currentConfig.primary_color[1], currentConfig.primary_color[2]);
     } else {
         ledstrip_setLight(0);
+        ledstrip_clear(0, 0, 0);
     }
 
     ledstrip_flush();
@@ -126,11 +127,13 @@ static void* callback_get_fan(void* user_ctx, char* content, size_t len, size_t*
 
 static void callback_set_enabled(void* user_ctx, char* content, size_t len) {
     currentConfig.led_state = content[0];
+    ESP_LOGI(TAG, "set enabled: %i", currentConfig.led_state);
     save_config();
     update_ledstrip_state();
 }
 
 static void* callback_get_enabled(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    ESP_LOGI(TAG, "get enabled: %i", currentConfig.led_state);
     *retsize = 1;
     uint8_t* ret = malloc(1);
     ret[0] = currentConfig.led_state;
@@ -139,16 +142,19 @@ static void* callback_get_enabled(void* user_ctx, char* content, size_t len, siz
 
 static void callback_set_light(void* user_ctx, char* content, size_t len) {
     currentConfig.led_light = content[0];
+    ESP_LOGI(TAG, "set light: %i", currentConfig.led_light);
     update_ledstrip_state();
 }
 
 static void callback_set_light_and_save(void* user_ctx, char* content, size_t len) {
     currentConfig.led_light = content[0];
+    ESP_LOGI(TAG, "set light: %i", currentConfig.led_light);
     save_config();
     update_ledstrip_state();
 }
 
 static void* callback_get_light(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    ESP_LOGI(TAG, "get light: %i", currentConfig.led_light);
     *retsize = 1;
     uint8_t* ret = malloc(1);
     ret[0] = currentConfig.led_light;
@@ -163,6 +169,7 @@ static void set_primary_color(void* user_ctx, char* content, size_t len) {
 }
 
 static void* callback_get_primary_color(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    *retsize = 3;
     uint8_t* ret = malloc(3);
     for (size_t i = 0; i < 3; i++) {
         ret[i] = currentConfig.primary_color[i];
