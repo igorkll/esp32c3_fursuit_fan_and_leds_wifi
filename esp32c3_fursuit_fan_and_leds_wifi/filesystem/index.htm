@@ -9,6 +9,11 @@
         *, ::after, ::before {
             box-sizing: border-box;
             touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        img {
+            -webkit-user-drag: none;
         }
 
         body, html {
@@ -16,6 +21,8 @@
             height: 100%;
             padding: 0;
             margin: 0;
+
+            user-select: none;
         }
 
         body {
