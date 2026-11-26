@@ -62,6 +62,19 @@
             max-width: 500px;
             max-height: calc(min(1000px, 80%));
             overflow-y: auto;
+
+            transition: opacity 0.5s;
+            opacity: 1;
+        }
+
+        .controller-closed {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .controller-overlay {
+            z-index: 50;
+            box-shadow: 0px 0px 25px 5px #ffffff;
         }
 
         .container {
@@ -102,6 +115,25 @@
         .button:active {
             background-color: rgb(121, 121, 121);
         }
+
+
+        .back-to-main {
+            background-color: rgb(209, 32, 32);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.1s;
+            border-radius: 8px;
+            color: #333333;
+            width: 48px;
+            height: 48px;
+            border: 2px solid #ffffff;
+        }
+
+        .back-to-main:active {
+            background-color: rgb(133, 12, 12);
+        }
+
+        
 
         .button-flat {
             background-color: rgb(212, 212, 212);
@@ -377,7 +409,18 @@
 
     <div class="title bigfont">Fursuit controller</div>
 
-    <div class="controller">
+    <div class="controller controller-closed controller-overlay" id="led-setup">
+        <div class="container maincontainer">
+            <button class="back-to-main">
+                &lt;
+            </button>
+            <div class="constsize-title">Separate colors</div>
+
+            
+        </div>
+    </div>
+
+    <div class="controller" id="main-setup">
         <div class="container maincontainer">
             <div class="constsize-title">Enabled</div>
 
@@ -410,7 +453,7 @@
             
             <div class="vcontainer">
                 <div class="title smallfont">separate</div>
-                <button class="button-flat">SETS</button>
+                <button class="button-flat" id="separate-button">SETS</button>
             </div>
         </div>
 
@@ -543,6 +586,13 @@
             return "#" + toHex(r) + toHex(g) + toHex(b);
         }
 
+        function selectController(id) {
+            document.querySelectorAll(".controller").forEach(element => {
+                element.classList.add("controller-closed");
+            });
+            document.getElementById(id).classList.remove("controller-closed");
+        }
+
         // --------------------- enable switch
         
         const enable_switch = document.getElementById("enable-switch")
@@ -563,6 +613,13 @@
 
         const light_slider = document.getElementById("light_slider");
         bindSlider(light_slider, 'light_reset', 64, sliderFormatByte, "set_light")
+
+        // ---------------------
+
+        document.getElementById("separate-button").addEventListener("click", () => selectController("led-setup"));
+        document.querySelectorAll(".back-to-main").forEach(element => {
+            element.addEventListener("click", () => selectController("main-setup"))
+        })
 
         // --------------------- fetch data
 
