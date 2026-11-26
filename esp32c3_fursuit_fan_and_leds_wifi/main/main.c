@@ -110,7 +110,7 @@ static void update_ledstrip_state() {
         for (size_t i = 0; i < currentConfig.led_count; i++) {
             if (currentConfig.other_colors_overwrite[i]) {
                 size_t ii = i * 3;
-                ledstrip_set(currentConfig.other_colors[ii], currentConfig.other_colors[ii + 1], currentConfig.other_colors[ii + 3]);
+                ledstrip_set(i, currentConfig.other_colors[ii], currentConfig.other_colors[ii + 1], currentConfig.other_colors[ii + 3]);
             }
         }
     } else {
