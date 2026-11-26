@@ -311,6 +311,15 @@
             background-color: #4aa54f;
         }
 
+        .bluecontainer {
+            box-shadow: 0px 0px 16px #4aa0a5;
+            background-color: #214a4e;
+        }
+
+        .bluecontainer-filler-line {
+            background-color: #4aa0a5;
+        }
+
         .loading-process {
             position: absolute;
             top: 0px;
@@ -371,6 +380,18 @@
             <div class="vcontainer">
                 <div class="title smallfont">primary</div>
                 <input class="colorpicker" type="color" id="primary_color">
+            </div>
+        </div>
+
+        <div class="container bluecontainer">
+            <div class="constsize-title">Fan</div>
+
+            <div class="filler">
+                <div class="filler-line bluecontainer-filler-line"></div>
+            </div>
+
+            <div class="enable-switch-container">
+                <input type="checkbox" id="fan-switch" class="fan-switch">
             </div>
         </div>
     </div>
