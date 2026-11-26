@@ -17,6 +17,8 @@ typedef struct {
     uint8_t led_light;
     bool led_state;
     Fan_state fan_state;
+
+    uint8_t primary_color[3];
 } config_t;
 
 config_t currentConfig;
@@ -100,7 +102,7 @@ static void update_ledstrip_state() {
 
     if (currentConfig.led_state) {
         ledstrip_setLight(currentConfig.led_light);
-        ledstrip_clear(, , );
+        ledstrip_clear(currentConfig.primary_color[0], currentConfig.primary_color[1], currentConfig.primary_color[2]);
     } else {
         ledstrip_setLight(0);
     }
@@ -153,6 +155,21 @@ static void* callback_get_light(void* user_ctx, char* content, size_t len, size_
     return ret;
 }
 
+static void set_primary_color(void* user_ctx, char* content, size_t len) {
+    for (size_t i = 0; i < 3; i++) {
+        currentConfig.primary_color[i] = content[i];
+    }
+    update_ledstrip_state();
+}
+
+static void* callback_get_primary_color(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    uint8_t* ret = malloc(3);
+    for (size_t i = 0; i < 3; i++) {
+        ret[i] = currentConfig.primary_color[i];
+    }
+    return ret;
+}
+
 void app_main() {
     if (!filesystem_init()) {
         ESP_LOGE(TAG, "failed to init filesystem");
@@ -175,6 +192,9 @@ void app_main() {
     wifi_attachCallback_post("/set_light", callback_set_light, NULL);
     wifi_attachCallback_post("/set_light_and_save", callback_set_light_and_save, NULL);
     wifi_attachCallback_get_binary("/get_light", callback_get_light, NULL);
+
+    wifi_attachCallback_post("/set_primary_color", set_primary_color, NULL);
+    wifi_attachCallback_get_binary("/get_primary_color", callback_get_primary_color, NULL);
 
     wifi_attachCallback_post("/set_fan", callback_set_fan, NULL);
     wifi_attachCallback_get_binary("/get_fan", callback_get_fan, NULL);
