@@ -523,22 +523,31 @@
         // --------------------- fetch data
 
         document.addEventListener('DOMContentLoaded', () => {
+            let fetchCounter = 3;
+            const fetchEnd = () => {
+                fetchCounter = fetchCounter - 1;
+                if (fetchCounter <= 0) {
+                    document.getElementById("loading-process").style.display = 'none';
+                }
+            };
+
             fetchCallbackBinary("get_enabled", data => {
-                const bytes = new Uint8Array(data)
-                enable_switch.checked = bytes[0]
+                const bytes = new Uint8Array(data);
+                enable_switch.checked = bytes[0];
+                fetchEnd();
             });
 
             fetchCallbackBinary("get_light", data => {
-                const bytes = new Uint8Array(data)
-                light_slider.value = bytes[0]
+                const bytes = new Uint8Array(data);
+                light_slider.value = bytes[0];
+                fetchEnd();
             });
 
             fetchCallbackBinary("get_primary_color", data => {
                 const bytes = new Uint8Array(data);
-                primary_color.value = rgbToHex(bytes[0], bytes[1], bytes[2])
+                primary_color.value = rgbToHex(bytes[0], bytes[1], bytes[2]);
+                fetchEnd();
             });
-
-            document.getElementById("loading-process").style.display.none = 'none';
         });
     </script>
 </body>
