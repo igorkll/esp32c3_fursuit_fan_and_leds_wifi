@@ -67,6 +67,8 @@ void wifi_init() {
     wifi_attachCallback_getConst("/index.html", "/storage/index.htm");
     wifi_attachCallback_getConst("/icon.png", "/storage/icon.png");
     wifi_attachCallback_getConst("/THIRD_PARTY_ASSETS.md", "/storage/THIRD_PARTY_ASSETS.md");
+    wifi_attachCallback_getConst("/back.svg", "/storage/back.svg");
+    wifi_attachCallback_getConst("/restart.svg", "/storage/restart.svg");
     wifi_attachCallback_getConst("/Victor_Mono/OFL.txt", "/storage/Victor_Mono/OFL.txt");
     wifi_attachCallback_getConst("/Victor_Mono/README.txt", "/storage/Victor_Mono/README.txt");
     wifi_attachCallback_getConst("/Victor_Mono/VictorMono.ttf", "/storage/Victor_Mono/VictorMono.ttf");
