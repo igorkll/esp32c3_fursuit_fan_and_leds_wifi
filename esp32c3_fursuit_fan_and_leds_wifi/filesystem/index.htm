@@ -342,8 +342,8 @@
             </div>
 
             <div class="vcontainer">
-                <div class="title smallfont">ambient</div>
-                <input class="colorpicker" type="color" id="ambient_color">
+                <div class="title smallfont">primary</div>
+                <input class="colorpicker" type="color" id="primary_color">
             </div>
         </div>
     </div>
@@ -387,11 +387,7 @@
                 }
             }
 
-            slider.addEventListener('mouseup', function() {
-                send(endpointWithSave, encodeCallback(slider.value));
-            });
-
-            slider.addEventListener('touchend', function() {
+            slider.addEventListener('pointerup', function() {
                 send(endpointWithSave, encodeCallback(slider.value));
             });
 
@@ -473,7 +469,7 @@
         // --------------------- light slider
 
         const light_slider = document.getElementById("light_slider");
-        bindSlider(light_slider, 'light_reset', 255, sliderFormatByte, "set_light")
+        bindSlider(light_slider, 'light_reset', 64, sliderFormatByte, "set_light")
 
         // --------------------- fetch data
 
@@ -481,9 +477,12 @@
             fetchCallback("get_enabled", data => {
                 const bytes = new Uint8Array(data)
                 enable_switch.checked = bytes[0]
-            })
+            });
 
-            fetchModeDependedData()
+            fetchCallback("get_light", data => {
+                const bytes = new Uint8Array(data)
+                light_slider.value = bytes[0]
+            });
         });
     </script>
 </body>

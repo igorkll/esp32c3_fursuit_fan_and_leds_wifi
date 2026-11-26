@@ -14,6 +14,8 @@ typedef enum {
 
 typedef struct {
     uint8_t led_count;
+    uint8_t led_light;
+    bool led_state;
     Fan_state fan_state;
 } config_t;
 
@@ -22,6 +24,8 @@ static nvs_handle_t nvs;
 
 static const config_t defaultConfig = {
     .led_count = DEFAULT_LED_COUNT,
+    .led_light = DEFAULT_LIGHT_COUNT,
+    .led_state = true,
     .fan_state = Fan_state_off
 };
 
@@ -94,6 +98,13 @@ static void update_ledstrip_state() {
         old_led_count = currentConfig.led_count;
     }
 
+    if (currentConfig.led_state) {
+        ledstrip_setLight(currentConfig.led_light);
+        ledstrip_clear(, , );
+    } else {
+        ledstrip_setLight(0);
+    }
+
     ledstrip_flush();
 }
 
@@ -108,6 +119,37 @@ static void* callback_get_fan(void* user_ctx, char* content, size_t len, size_t*
     *retsize = 1;
     uint8_t* ret = malloc(1);
     ret[0] = currentConfig.fan_state;
+    return ret;
+}
+
+static void callback_set_enabled(void* user_ctx, char* content, size_t len) {
+    currentConfig.led_state = content[0];
+    save_config();
+    update_ledstrip_state();
+}
+
+static void* callback_get_enabled(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    *retsize = 1;
+    uint8_t* ret = malloc(1);
+    ret[0] = currentConfig.led_state;
+    return ret;
+}
+
+static void callback_set_light(void* user_ctx, char* content, size_t len) {
+    currentConfig.led_light = content[0];
+    update_ledstrip_state();
+}
+
+static void callback_set_light_and_save(void* user_ctx, char* content, size_t len) {
+    currentConfig.led_light = content[0];
+    save_config();
+    update_ledstrip_state();
+}
+
+static void* callback_get_light(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    *retsize = 1;
+    uint8_t* ret = malloc(1);
+    ret[0] = currentConfig.led_light;
     return ret;
 }
 
@@ -126,6 +168,14 @@ void app_main() {
     update_fan_state();
 
     wifi_init();
+    
+    wifi_attachCallback_post("/set_enabled", callback_set_enabled, NULL);
+    wifi_attachCallback_get_binary("/get_enabled", callback_get_enabled, NULL);
+
+    wifi_attachCallback_post("/set_light", callback_set_light, NULL);
+    wifi_attachCallback_post("/set_light_and_save", callback_set_light_and_save, NULL);
+    wifi_attachCallback_get_binary("/get_light", callback_get_light, NULL);
+
     wifi_attachCallback_post("/set_fan", callback_set_fan, NULL);
     wifi_attachCallback_get_binary("/get_fan", callback_get_fan, NULL);
 }
