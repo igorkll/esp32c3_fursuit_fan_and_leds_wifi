@@ -100,6 +100,14 @@
             gap: 10px;
         }
 
+        .hcontainer {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 10px;
+        }
+
         .button {
             background-color: rgb(212, 212, 212);
             border: none;
@@ -414,11 +422,13 @@
 
     <div class="controller controller-closed controller-overlay" id="led-setup">
         <div class="container maincontainer">
-            <button class="back-to-main">
-                &lt;
-            </button>
+            <div class="hcontainer">
+                <button class="back-to-main">
+                    &lt;
+                </button>
 
-            <div class="constsize-title">Separate colors</div>
+                <div class="constsize-title">Separate colors</div>
+            </div>
 
             <div class="filler">
                 <div class="filler-line maincontainer-filler-line"></div>
