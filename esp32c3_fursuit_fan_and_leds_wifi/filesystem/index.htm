@@ -543,13 +543,14 @@
                 if (currentTime - lastExecutionTime >= throttleDelay) {
                     send(endpointBasename, encodeCallback(slider.value));
                     lastExecutionTime = currentTime;
-
-                    if (timerId) clearTimeout(timerId);
-                    timerId = setTimeout(throttleDelay, () => {
-                        send(endpointBasename, encodeCallback(slider.value));
-                        lastExecutionTime = Date.now();
-                    });
                 }
+
+                if (timerId) clearTimeout(timerId);
+                timerId = setTimeout(() => {
+                    send(endpointBasename, encodeCallback(slider.value));
+                    lastExecutionTime = Date.now();
+                    timerId = null;
+                }, throttleDelay);
             }
 
             slider.addEventListener('pointerup', function() {

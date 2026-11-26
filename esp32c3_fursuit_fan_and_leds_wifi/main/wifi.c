@@ -127,10 +127,11 @@ static esp_err_t user_getConst_handler(httpd_req_t* req) {
         return ESP_FAIL;
     }
 
-    if (strstr(path, ".ttf"))       httpd_resp_set_type(req, "font/ttf");
+    if (strstr(path, ".ttf"))        httpd_resp_set_type(req, "font/ttf");
     else if (strstr(path, ".woff2")) httpd_resp_set_type(req, "font/woff2");
-    else if (strstr(path, ".png"))  httpd_resp_set_type(req, "image/png");
-    else if (strstr(path, ".htm"))  httpd_resp_set_type(req, "text/html");
+    else if (strstr(path, ".png"))   httpd_resp_set_type(req, "image/png");
+    else if (strstr(path, ".svg"))   httpd_resp_set_type(req, "image/svg+xml");
+    else if (strstr(path, ".htm") || strstr(path, ".html"))   httpd_resp_set_type(req, "text/html");
 
     char buf[WIFI_CHUNK_SIZE];
     size_t n;
