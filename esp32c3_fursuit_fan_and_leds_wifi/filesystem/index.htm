@@ -143,6 +143,18 @@
             border: 2px solid #ffffff;
             color: #ffffff;
             font-size: 35px;
+
+            background-image: url("back.svg");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+        }
+
+        .restart-icon {
+            background-image: url("restart.svg");
+            background-repeat: no-repeat;
+            background-position: center 3px;
+            background-size: contain;
         }
 
         .back-to-main:active {
@@ -428,9 +440,7 @@
     <div class="controller controller-closed controller-overlay" id="led-setup">
         <div class="container maincontainer">
             <div class="hcontainer">
-                <button class="back-to-main">
-                    &lt;
-                </button>
+                <button class="back-to-main"></button>
 
                 <div class="constsize-title">Separate colors</div>
             </div>
@@ -461,7 +471,7 @@
         <div class="container">
             <div class="constsize-title">Light</div>
             <input type="range" min="0" max="255" value="0" class="slider" id="light_slider">
-            <button id="light_reset" class="button">↺</button>
+            <button id="light_reset" class="button restart-icon"></button>
         </div>
         
         <div class="container">

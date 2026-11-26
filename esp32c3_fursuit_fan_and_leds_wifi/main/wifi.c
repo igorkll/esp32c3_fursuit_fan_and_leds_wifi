@@ -66,6 +66,7 @@ void wifi_init() {
     wifi_attachCallback_getConst("/", "/storage/index.htm");
     wifi_attachCallback_getConst("/index.html", "/storage/index.htm");
     wifi_attachCallback_getConst("/icon.png", "/storage/icon.png");
+    wifi_attachCallback_getConst("/THIRD_PARTY_ASSETS.md", "/storage/THIRD_PARTY_ASSETS.md");
     wifi_attachCallback_getConst("/Victor_Mono/OFL.txt", "/storage/Victor_Mono/OFL.txt");
     wifi_attachCallback_getConst("/Victor_Mono/README.txt", "/storage/Victor_Mono/README.txt");
     wifi_attachCallback_getConst("/Victor_Mono/VictorMono.ttf", "/storage/Victor_Mono/VictorMono.ttf");
@@ -117,14 +118,29 @@ static esp_err_t user_post_handler(httpd_req_t* req) {
 static esp_err_t user_getConst_handler(httpd_req_t* req) {
     const char* path = req->user_ctx;
     ESP_LOGI(TAG, "file request: %s", path);
-    size_t contentSize;
-    void* content = filesystem_readFileToHeapAndGetSize(path, &contentSize);
-    if (!content) {
-        ESP_LOGE(TAG, "failed to read: %s", path);
+
+    FILE* f = fopen(path, "rb");
+    if (!f) {
+        ESP_LOGE(TAG, "failed to open: %s", path);
         return ESP_FAIL;
     }
-    httpd_resp_send(req, content, contentSize);
-    free(content);
+
+    if (strstr(path, ".ttf"))       httpd_resp_set_type(req, "font/ttf");
+    else if (strstr(path, ".woff2")) httpd_resp_set_type(req, "font/woff2");
+    else if (strstr(path, ".png"))  httpd_resp_set_type(req, "image/png");
+    else if (strstr(path, ".htm"))  httpd_resp_set_type(req, "text/html");
+
+    char buf[WIFI_CHUNK_SIZE];
+    size_t n;
+    while ((n = fread(buf, 1, sizeof(buf), f)) > 0) {
+        if (httpd_resp_send_chunk(req, buf, n) != ESP_OK) {
+            fclose(f);
+            return ESP_FAIL;
+        }
+    }
+    fclose(f);
+
+    httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
 

@@ -2,6 +2,7 @@
 #include "main.h"
 
 #define MAX_ENDPOINTS 32
+#define WIFI_CHUNK_SIZE 1024
 
 typedef void (*user_post_cb) (void* user_ctx, char* content, size_t len);
 typedef void* (*user_get_cb) (void* user_ctx, char* content, size_t len, size_t* retsize);
