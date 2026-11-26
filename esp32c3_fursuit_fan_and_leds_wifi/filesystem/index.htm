@@ -428,19 +428,33 @@
 
             let lastExecutionTime = 0;
             const throttleDelay = 200;
+            let timerId = null;
+
             slider.oninput = function() {
                 const currentTime = Date.now();
                 if (currentTime - lastExecutionTime >= throttleDelay) {
                     send(endpointBasename, encodeCallback(slider.value));
                     lastExecutionTime = currentTime;
+
+                    if (timerId) clearTimeout(timerId);
+                    timerId = setTimeout(throttleDelay, () => {
+                        send(endpointBasename, encodeCallback(slider.value));
+                        lastExecutionTime = Date.now();
+                    });
                 }
             }
 
             slider.addEventListener('pointerup', function() {
+                if (timerId) clearTimeout(timerId);
+                timerId = null;
+                
                 send(endpointWithSave, encodeCallback(slider.value));
             });
 
             document.getElementById(resetButtonName).addEventListener('click', () => {
+                if (timerId) clearTimeout(timerId);
+                timerId = null;
+
                 slider.value = defaultValue;
                 send(endpointWithSave, encodeCallback(slider.value));
             });
