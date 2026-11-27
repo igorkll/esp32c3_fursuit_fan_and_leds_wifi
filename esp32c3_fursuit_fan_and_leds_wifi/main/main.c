@@ -126,17 +126,20 @@ static void fan_task(void *pvParameters) {
 }
 
 static void disable_fan_timer() {
+    ESP_LOGI(TAG, "disable_fan_timer");
+
     old_en_fan_time = -1;
     old_dis_fan_time = -1;
 
     if (fan_task_handle) {
-        free(fan_task_handle);
+        vTaskDelete(fan_task_handle);
         fan_task_handle = NULL;
     }
 }
 
 static void enable_fan_timer() {
     if (fan_task_handle) disable_fan_timer();
+    ESP_LOGI(TAG, "enable_fan_timer");
 
     xTaskCreate(
         fan_task,
@@ -149,18 +152,23 @@ static void enable_fan_timer() {
 }
 
 static void update_fan_state() {
+    ESP_LOGI(TAG, "update fan state");
+
     switch (currentConfig.fan_state) {
         case Fan_state_off:
+            ESP_LOGI(TAG, "update fan: off");
             disable_fan_timer();
             fan_setState(false);
             break;
 
         case Fan_state_on:
+            ESP_LOGI(TAG, "update fan: on");
             disable_fan_timer();
             fan_setState(true);
             break;
 
         case Fan_state_timer:
+            ESP_LOGI(TAG, "update fan: timer");
             if (currentConfig.en_fan_time != old_en_fan_time ||
                 currentConfig.dis_fan_time != old_dis_fan_time) {
                 enable_fan_timer();
