@@ -51,6 +51,12 @@ static void nvs_init() {
     ESP_ERROR_CHECK(nvs_open("nvs", NVS_READWRITE, &nvs));
 }
 
+static void wait(float milliseconds) {
+    uint32_t ticks = milliseconds / portTICK_PERIOD_MS;
+    if (ticks < 1) ticks = 1;
+    vTaskDelay(ticks);
+}
+
 static int atoi_with_limit(const char* str, int max_length) {
     long result = 0;
     int sign = 1;
@@ -101,12 +107,6 @@ static void save_config() {
     }
 }
 
-static void wait(float milliseconds) {
-    uint32_t ticks = milliseconds / portTICK_PERIOD_MS;
-    if (ticks < 1) ticks = 1;
-    vTaskDelay(ticks);
-}
-
 static void deadlock() {
     while (true) wait(1000);
 }
@@ -119,9 +119,9 @@ static TaskHandle_t fan_task_handle = NULL;
 static void fan_task(void *pvParameters) {
     while (true) {
         fan_setState(true);
-        vTaskDelay(pdMS_TO_TICKS(currentConfig.en_fan_time * 1000));
+        wait(currentConfig.en_fan_time * 1000);
         fan_setState(false);
-        vTaskDelay(pdMS_TO_TICKS(currentConfig.dis_fan_time * 1000));
+        wait(currentConfig.dis_fan_time * 1000);
     }
 }
 
