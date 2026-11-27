@@ -92,6 +92,18 @@
             border-radius: 16px;
         }
 
+        .container-in-scroll {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+
+            background-color: #666666;
+            padding: 10px;
+            border-radius: 16px;
+
+            border: 2px solid #ffffff;
+        }
+
         .big-button {
             background-color: rgb(212, 212, 212);
             border: none;
@@ -430,6 +442,50 @@
         .enable-switch:checked::before {
             transform: translateX(calc(100px - 50px));
             outline: 2px solid #94ff99;
+        }
+
+        .mini-switch {
+            appearance: none;
+
+            width: 50px;
+            height: 25px;
+
+            background: #ccc;
+            border-radius: 999px;
+            outline: 2px solid #f5f5f5;
+
+            position: relative;
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .mini-switch::before {
+            content: "";
+
+            position: absolute;
+
+            width: calc(25px - (6px * 2));
+            height: calc(25px - (6px * 2));
+
+            left: 6px;
+            top: 6px;
+
+            border-radius: 50%;
+            background: white;
+
+            transition: 0.2s;
+            outline: 2px solid #acacac;
+        }
+
+        .mini-switch:checked {
+            background: #b8b8b8;
+            outline: 2px solid #e2e2e2;
+        }
+
+        .mini-switch:checked::before {
+            transform: translateX(calc(50px - 25px));
+            outline: 2px solid #ffffff;
         }
 
         .fan-switch {
@@ -917,12 +973,22 @@
             };
             
             const separate_element = document.createElement("div");
+            separate_element.classList.add("container-in-scroll");
 
             const text_title = document.createElement("div");
             text_title.textContent = idx + 1;
             separate_element.appendChild(text_title);
 
+            const sep = document.createElement("div");
+            sep.classList.add("filler");
+            separate_element.appendChild(sep);
+
+            const sep_line = document.createElement("div");
+            sep_line.classList.add("filler-line");
+            sep.appendChild(sep_line);
+
             const enabled_checkbox = document.createElement("input");
+            enabled_checkbox.classList.add("mini-switch");
             enabled_checkbox.type = 'checkbox';
             enabled_checkbox.checked = enabled;
             enabled_checkbox.addEventListener("change", e => {
@@ -932,6 +998,7 @@
             separate_element.appendChild(enabled_checkbox);
 
             const colorpicker = document.createElement("input");
+            colorpicker.classList.add("colorpicker");
             colorpicker.type = 'color';
             colorpicker.value = rgbToHex(r, g, b);
             colorpicker.addEventListener("change", (event) => {
