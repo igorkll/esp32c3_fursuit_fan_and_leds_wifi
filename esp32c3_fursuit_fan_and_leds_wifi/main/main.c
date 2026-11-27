@@ -72,12 +72,15 @@ static void service_buttons_check() {
         ledstrip_setLight(16);
         for (size_t i = 0; i < 3; i++) {
             ledstrip_clear(255, 0, 0);
+            ledstrip_flush();
             wait(500);
 
             ledstrip_clear(255, 255, 0);
+            ledstrip_flush();
             wait(500);
 
             ledstrip_clear(0, 0, 0);
+            ledstrip_flush();
             wait(500);
         }
 
