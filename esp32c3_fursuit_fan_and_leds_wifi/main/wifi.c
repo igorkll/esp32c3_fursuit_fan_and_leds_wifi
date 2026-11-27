@@ -20,6 +20,8 @@ typedef struct {
 } user_get_cb_data;
 
 void wifi_init() {
+    esp_wifi_set_storage(WIFI_STORAGE_RAM);
+    
     // wifi
     ESP_LOGI(TAG, "starting wifi...");
     ESP_ERROR_CHECK(esp_netif_init());

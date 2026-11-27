@@ -78,11 +78,10 @@ static void service_buttons_check() {
             ledstrip_clear(255, 255, 0);
             ledstrip_flush();
             wait(500);
-
-            ledstrip_clear(0, 0, 0);
-            ledstrip_flush();
-            wait(500);
         }
+
+        ledstrip_clear(0, 0, 0);
+        ledstrip_flush();
 
         remove(config_path);
         esp_restart();
