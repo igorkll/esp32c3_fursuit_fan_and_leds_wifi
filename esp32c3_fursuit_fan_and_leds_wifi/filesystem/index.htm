@@ -913,7 +913,7 @@
         const enable_separate = document.getElementById("enable-separate");
 
         enable_separate.addEventListener("change", e => {
-            send("set_separate_enabled", new Uint8Array([enable_separate.checked ? 1 : 0]))
+            send("set_separate_enabled", new Uint8Array([enable_separate.checked ? 1 : 0]));
         });
 
         // --------------------- primary color
@@ -1002,9 +1002,12 @@
             colorpicker.type = 'color';
             colorpicker.value = rgbToHex(r, g, b);
             colorpicker.addEventListener("change", (event) => {
-                enabled_checkbox.checked = true;
-                enable_separate.checked = true;
+                if (!enable_separate.checked) {
+                    enable_separate.checked = true;
+                    send("set_separate_enabled", new Uint8Array([1]));
+                }
 
+                enabled_checkbox.checked = true;
                 let rgb = hexToRgb(event.target.value)
                 r = rgb.r;
                 g = rgb.g;
