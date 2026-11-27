@@ -365,9 +365,9 @@ static void callback_reset_separate_all(void* user_ctx, char* content, size_t le
 static void callback_set_separate_color(void* user_ctx, char* content, size_t len) {
     size_t idx = content[0];
     bool en = content[1];
-    bool colR = content[2];
-    bool colG = content[3];
-    bool colB = content[4];
+    uint8_t colR = content[2];
+    uint8_t colG = content[3];
+    uint8_t colB = content[4];
     ESP_LOGI(TAG, "set separate color (%i, %i): %i %i %i", idx, en, colR, colG, colB);
 
     size_t idx3 = idx * 3;
