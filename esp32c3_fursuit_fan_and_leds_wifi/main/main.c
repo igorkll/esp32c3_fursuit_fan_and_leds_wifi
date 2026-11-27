@@ -381,8 +381,8 @@ static void callback_set_separate_color(void* user_ctx, char* content, size_t le
 
 static void* callback_get_separate_all(void* user_ctx, char* content, size_t len, size_t* retsize) {
     ESP_LOGI(TAG, "get separate all");
-    size_t retsize = 1 + currentConfig.led_count + (currentConfig.led_count * 3);
-    char* ret = malloc(retsize);
+    size_t allocSize = 1 + currentConfig.led_count + (currentConfig.led_count * 3);
+    char* ret = malloc(allocSize);
     ret[0] = currentConfig.led_count;
     
     for (size_t i = 0; i < currentConfig.led_count; i++) {
@@ -396,7 +396,7 @@ static void* callback_get_separate_all(void* user_ctx, char* content, size_t len
         }
     }
 
-    *retsize = retsize;
+    *retsize = allocSize;
     return ret;
 }
 
@@ -432,10 +432,10 @@ void app_main() {
     wifi_attachCallback_post("/set_led_count_and_save", callback_set_led_count_and_save, NULL);
     wifi_attachCallback_get_binary("/get_led_count", callback_get_led_count, NULL);
 
-    wifi_attachCallback_post("/set_separate_color", callback_set_separate_color, NULL);
     wifi_attachCallback_post("/set_separate_enabled", callback_set_separate_enabled, NULL);
     wifi_attachCallback_get_binary("/get_separate_enabled", callback_get_separate_enabled, NULL);
-
+    
+    wifi_attachCallback_post("/set_separate_color", callback_set_separate_color, NULL);
     wifi_attachCallback_post("/reset_separate_all", callback_reset_separate_all, NULL);
     wifi_attachCallback_get_binary("/get_separate_all", callback_get_separate_all, NULL);
 
