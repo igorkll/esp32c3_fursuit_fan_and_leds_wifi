@@ -224,6 +224,8 @@ static void* callback_get_primary_color(void* user_ctx, char* content, size_t le
 
 static void callback_set_led_count(void* user_ctx, char* content, size_t len) {
     currentConfig.led_count = content[0];
+    ESP_LOGI(TAG, "set led count: %i, %i", currentConfig.led_count, MAX_LED_COUNT);
+    
     if (currentConfig.led_count > MAX_LED_COUNT) currentConfig.led_count = MAX_LED_COUNT;
 
     for (size_t i = currentConfig.led_count; i < MAX_LED_COUNT; i++) {
@@ -239,6 +241,7 @@ static void callback_set_led_count(void* user_ctx, char* content, size_t len) {
 }
 
 static void* callback_get_led_count(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    ESP_LOGI(TAG, "get led count: %i, %i", currentConfig.led_count, MAX_LED_COUNT);
     *retsize = 2;
     uint8_t* ret = malloc(2);
     ret[0] = currentConfig.led_count;
