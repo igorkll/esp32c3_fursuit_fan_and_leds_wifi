@@ -443,6 +443,11 @@
 
             transition: 0.2s;
             outline: 2px solid #acacac;
+
+            background-image: url("icon1.png");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 22px 22px;
         }
 
         .fan-switch.en-1,
@@ -454,11 +459,21 @@
         .fan-switch.en-1::before {
             transform: translateX(calc(100px - 50px));
             outline: 2px solid #98ffee;
+
+            background-image: url("icon2.png");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 22px 22px;
         }
 
         .fan-switch.en-2::before {
             transform: translateX(calc(150px - 50px));
             outline: 2px solid #98ffee;
+
+            background-image: url("icon3.png");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 22px 22px;
         }
 
         .maincontainer {
@@ -641,12 +656,6 @@
                     "Content-type": "application/json; charset=UTF-8"
                 }
             });
-        }
-
-        function getByteFromString(str, index=0) {
-            const encoder = new TextEncoder();
-            const byteArray = encoder.encode(str);
-            return byteArray.length > index ? byteArray[index] : 0;
         }
 
         function bindSlider(slider, resetButtonName, textName, defaultValue, encodeCallback, endpointBasename, noSendWithoutSave=false) {

@@ -72,6 +72,9 @@ void wifi_init() {
     wifi_attachCallback_getConst("/Victor_Mono/OFL.txt", "/storage/Victor_Mono/OFL.txt");
     wifi_attachCallback_getConst("/Victor_Mono/README.txt", "/storage/Victor_Mono/README.txt");
     wifi_attachCallback_getConst("/Victor_Mono/VictorMono.ttf", "/storage/Victor_Mono/VictorMono.ttf");
+    wifi_attachCallback_getConst("/icon1.png", "/storage/icon1.png");
+    wifi_attachCallback_getConst("/icon2.png", "/storage/icon2.png");
+    wifi_attachCallback_getConst("/icon3.png", "/storage/icon3.png");
 
     ESP_LOGI(TAG, "wifi & server initialization done!");
 }
