@@ -1002,10 +1002,12 @@
             colorpicker.type = 'color';
             colorpicker.value = rgbToHex(r, g, b);
             colorpicker.addEventListener("change", (event) => {
+                enabled_checkbox.checked = true;
                 let rgb = hexToRgb(event.target.value)
                 r = rgb.r;
                 g = rgb.g;
                 b = rgb.b;
+                enabled = enabled_checkbox.checked;
                 send_data();
             });
             separate_element.appendChild(colorpicker);
