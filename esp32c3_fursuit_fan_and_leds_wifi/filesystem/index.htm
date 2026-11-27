@@ -821,7 +821,7 @@
         // --------------------- fetch data
 
         document.addEventListener('DOMContentLoaded', () => {
-            let fetchCounter = 7;
+            let fetchCounter = 8;
             const fetchEnd = () => {
                 fetchCounter = fetchCounter - 1;
                 if (fetchCounter <= 0) {
@@ -866,6 +866,12 @@
 
             fetchCallback("get_dis_fan", data => {
                 dis_fan_slider.value = parseInt(data);
+                fetchEnd();
+            });
+
+            fetchCallbackBinary("get_led_count", data => {
+                const bytes = new Uint8Array(data);
+                
                 fetchEnd();
             });
         });
