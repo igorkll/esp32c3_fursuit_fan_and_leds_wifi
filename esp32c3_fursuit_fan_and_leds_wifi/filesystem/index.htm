@@ -65,7 +65,7 @@
             width: 90%;
 
             max-width: 500px;
-            max-height: calc(min(1000px, 50%));
+            max-height: calc(min(1000px, 75%));
             overflow-y: auto;
 
             transition: opacity 0.5s;
@@ -614,7 +614,7 @@
         </div>
     </div>
 
-    <div class="developer-info">
+    <div class="developer-info" id="developer-info">
         <div class="size-normalizer developer-image">
             <img src="icon.png"></img>
         </div>
@@ -825,12 +825,17 @@
 
         // --------------------- fetch data
 
+        window.loadEnd = () => {
+            document.getElementById("loading-process").style.display = 'none';
+            document.getElementById("developer-info").style.zIndex = 'auto';
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             let fetchCounter = 8;
             const fetchEnd = () => {
                 fetchCounter = fetchCounter - 1;
                 if (fetchCounter <= 0) {
-                    document.getElementById("loading-process").style.display = 'none';
+                    window.loadEnd();                    
                 }
             };
 
