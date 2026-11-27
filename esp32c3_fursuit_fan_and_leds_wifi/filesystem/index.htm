@@ -945,14 +945,16 @@
         realloc_elements_count = (ledsCount) => {
             if (ledsCount > separate_elements.length) {
                 let new_count = ledsCount - separate_elements.length;
+                
                 for (let i = 0; i < new_count; i++) {
                     alloc_separate_element(separate_elements.length, false, 0, 0, 0);
                 }
             } else if (ledsCount < separate_elements.length) {
                 let del_count = separate_elements.length - ledsCount;
 
+                separate_elements.splice(-del_count);
                 for (let i = 0; i < del_count; i++) {
-                    
+                    separate_scroll_container.lastElementChild.remove();
                 }
             }
         };
