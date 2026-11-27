@@ -993,7 +993,7 @@
             enabled_checkbox.type = 'checkbox';
             enabled_checkbox.checked = enabled;
             enabled_checkbox.addEventListener("change", e => {
-                enabled = enable_switch.checked;
+                enabled = enabled_checkbox.checked;
                 send_data();
             });
             separate_element.appendChild(enabled_checkbox);
