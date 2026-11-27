@@ -277,6 +277,9 @@ static void* callback_get_primary_color(void* user_ctx, char* content, size_t le
 }
 
 static void callback_set_led_count_and_save(void* user_ctx, char* content, size_t len) {
+    ledstrip_clear(0, 0, 0);
+    ledstrip_flush();
+
     currentConfig.led_count = content[0];
     ESP_LOGI(TAG, "set led count: %i, %i", currentConfig.led_count, MAX_LED_COUNT);
 
