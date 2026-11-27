@@ -276,16 +276,8 @@ static void* callback_get_primary_color(void* user_ctx, char* content, size_t le
     return ret;
 }
 
-static void callback_set_led_count_and_save(void* user_ctx, char* content, size_t len) {
-    ledstrip_clear(0, 0, 0);
-    ledstrip_flush();
-
-    currentConfig.led_count = content[0];
-    ESP_LOGI(TAG, "set led count: %i, %i", currentConfig.led_count, MAX_LED_COUNT);
-
-    if (currentConfig.led_count > MAX_LED_COUNT) currentConfig.led_count = MAX_LED_COUNT;
-
-    for (size_t i = currentConfig.led_count; i < MAX_LED_COUNT; i++) {
+static void reset_separate_colors_from(size_t fromIdx) {
+    for (size_t i = fromIdx; i < MAX_LED_COUNT; i++) {
         currentConfig.other_colors_overwrite[i] = false;
         
         size_t ii = i * 3;
@@ -293,7 +285,18 @@ static void callback_set_led_count_and_save(void* user_ctx, char* content, size_
         currentConfig.other_colors[ii+1] = 0;
         currentConfig.other_colors[ii+2] = 0;
     }
+}
 
+static void callback_set_led_count_and_save(void* user_ctx, char* content, size_t len) {
+    ledstrip_clear(0, 0, 0);
+    ledstrip_flush();
+
+    currentConfig.led_count = content[0];
+    ESP_LOGI(TAG, "set led count: %i, %i", currentConfig.led_count, MAX_LED_COUNT);
+    
+    if (currentConfig.led_count > MAX_LED_COUNT) currentConfig.led_count = MAX_LED_COUNT;
+    reset_separate_colors_from(currentConfig.led_count);
+    
     save_config();
     update_ledstrip_state();
 }
@@ -352,6 +355,51 @@ static void* callback_get_dis_fan(void* user_ctx, char* content, size_t len, siz
     return ret;
 }
 
+static void callback_reset_separate_all(void* user_ctx, char* content, size_t len) {
+    ESP_LOGI(TAG, "reset separate all");
+    reset_separate_colors_from(0);
+    save_config();
+    update_ledstrip_state();
+}
+
+static void callback_set_separate_color(void* user_ctx, char* content, size_t len) {
+    size_t idx = content[0];
+    bool en = content[1];
+    bool colR = content[2];
+    bool colG = content[3];
+    bool colB = content[4];
+    ESP_LOGI(TAG, "set separate color (%i, %i): %i %i %i", idx, en, colR, colG, colB);
+
+    currentConfig.other_colors_overwrite[idx] = en;
+    currentConfig.other_colors[idx + 0] = colR;
+    currentConfig.other_colors[idx + 1] = colG;
+    currentConfig.other_colors[idx + 2] = colB;
+
+    save_config();
+    update_ledstrip_state();
+}
+
+static void* callback_get_separate_all(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    ESP_LOGI(TAG, "get separate all");
+    size_t retsize = 1 + currentConfig.led_count + (currentConfig.led_count * 3);
+    char* ret = malloc(retsize);
+    ret[0] = currentConfig.led_count;
+    
+    for (size_t i = 0; i < currentConfig.led_count; i++) {
+        ret[1 + i] = currentConfig.other_colors_overwrite[i];
+    }
+
+    for (size_t i = 0; i < currentConfig.led_count; i++) {
+        size_t i2 = 1 + currentConfig.led_count + (i * 3);
+        for (size_t i3 = 0; i3 < 2; i3++) {
+            ret[i2 + i3] = currentConfig.other_colors[i + i3];
+        }
+    }
+
+    *retsize = retsize;
+    return ret;
+}
+
 void app_main() {
     if (!filesystem_init()) {
         ESP_LOGE(TAG, "failed to init filesystem");
@@ -384,8 +432,12 @@ void app_main() {
     wifi_attachCallback_post("/set_led_count_and_save", callback_set_led_count_and_save, NULL);
     wifi_attachCallback_get_binary("/get_led_count", callback_get_led_count, NULL);
 
+    wifi_attachCallback_post("/set_separate_color", callback_set_separate_color, NULL);
     wifi_attachCallback_post("/set_separate_enabled", callback_set_separate_enabled, NULL);
     wifi_attachCallback_get_binary("/get_separate_enabled", callback_get_separate_enabled, NULL);
+
+    wifi_attachCallback_post("/reset_separate_all", callback_reset_separate_all, NULL);
+    wifi_attachCallback_get_binary("/get_separate_all", callback_get_separate_all, NULL);
 
     wifi_attachCallback_post("/set_en_fan_and_save", callback_set_en_fan_and_save, NULL);
     wifi_attachCallback_post("/set_dis_fan_and_save", callback_set_dis_fan_and_save, NULL);
