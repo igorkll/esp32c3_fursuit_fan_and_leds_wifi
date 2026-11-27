@@ -1003,6 +1003,8 @@
             colorpicker.value = rgbToHex(r, g, b);
             colorpicker.addEventListener("change", (event) => {
                 enabled_checkbox.checked = true;
+                enable_separate.checked = true;
+
                 let rgb = hexToRgb(event.target.value)
                 r = rgb.r;
                 g = rgb.g;
