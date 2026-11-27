@@ -896,7 +896,7 @@
             fetchCallbackBinary("get_led_count", data => {
                 const bytes = new Uint8Array(data);
                 leds_slider.max = bytes[1];
-                leds_slider.value = bytes[0];
+                leds_slider._setValue(bytes[0]);
                 fetchEnd();
             });
         });
