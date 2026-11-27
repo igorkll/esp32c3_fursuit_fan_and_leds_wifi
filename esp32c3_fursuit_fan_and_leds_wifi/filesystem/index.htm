@@ -377,6 +377,7 @@
             background: white;
 
             transition: 0.2s;
+            outline: 2px solid #acacac;
         }
 
         .enable-switch:checked {
@@ -386,6 +387,57 @@
 
         .enable-switch:checked::before {
             transform: translateX(calc(100px - 50px));
+            outline: 2px solid #94ff99;
+        }
+
+        .fan-switch {
+            appearance: none;
+
+            width: 150px;
+            height: 50px;
+
+            background: #ccc;
+            border-radius: 999px;
+            outline: 2px solid #f5f5f5;
+
+            position: relative;
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .fan-switch::before {
+            content: "";
+
+            position: absolute;
+
+            width: calc(50px - (6px * 2));
+            height: calc(50px - (6px * 2));
+
+            left: 6px;
+            top: 6px;
+
+            border-radius: 50%;
+            background: white;
+
+            transition: 0.2s;
+            outline: 2px solid #acacac;
+        }
+
+        .fan-switch.en-1,
+        .fan-switch.en-2 {
+            background: #4cafa0;
+            outline: 2px solid #61ead3;
+        }
+
+        .fan-switch.en-1::before {
+            transform: translateX(calc(100px - 50px));
+            outline: 2px solid #61ead3;
+        }
+
+        .fan-switch.en-2::before {
+            transform: translateX(calc(150px - 50px));
+            outline: 2px solid #61ead3;
         }
 
         .maincontainer {
