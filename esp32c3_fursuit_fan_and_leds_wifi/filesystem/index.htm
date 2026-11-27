@@ -432,12 +432,12 @@
 
         .fan-switch.en-1::before {
             transform: translateX(calc(100px - 50px));
-            outline: 2px solid #61ead3;
+            outline: 2px solid #98ffee;
         }
 
         .fan-switch.en-2::before {
             transform: translateX(calc(150px - 50px));
-            outline: 2px solid #61ead3;
+            outline: 2px solid #98ffee;
         }
 
         .maincontainer {
@@ -567,6 +567,30 @@
     </div>
 
     <script>
+        function bindMultiSwitch(element, positionsCount, changePositionCallback) {
+            let position = 0;
+
+            const updateSwitchPos = () => {
+                for (let i = 0; i < positionsCount; i++) {
+                    element.classList.remove(`en-${i}`);
+                }
+
+                element.classList.add(`en-${position}`);
+            };
+
+            element.addEventListener("click", () => {
+                position = position + 1;
+                if (position >= positionsCount) position = 0;
+                updateSwitchPos();
+                changePositionCallback(position);
+            });
+
+            return (_position) => {
+                position = _position;
+                updateSwitchPos();
+            };
+        }
+
         function send(name, data="") {
             return fetch(`http://${window.location.hostname}/${name}`, {
                 method: "POST",
@@ -702,13 +726,21 @@
         const primary_color = document.getElementById("primary_color")
         primary_color.addEventListener("change", (event) => {
             let rgb = hexToRgb(event.target.value)
-            send("set_primary_color", new Uint8Array([rgb.r, rgb.g, rgb.b]))
+            send("set_primary_color", new Uint8Array([rgb.r, rgb.g, rgb.b]));
         })
 
         // --------------------- light slider
 
         const light_slider = document.getElementById("light_slider");
         bindSlider(light_slider, 'light_reset', 64, sliderFormatByte, "set_light")
+
+        // --------------------- fan switch
+
+        const fan_switch = document.getElementById("fan-switch");
+
+        const setFanSwitchPosition = bindMultiSwitch(fan_switch, 3, (position) => {
+            send("set_fan", new Uint8Array([position]));
+        });
 
         // ---------------------
 
@@ -720,7 +752,7 @@
         // --------------------- fetch data
 
         document.addEventListener('DOMContentLoaded', () => {
-            let fetchCounter = 4;
+            let fetchCounter = 5;
             const fetchEnd = () => {
                 fetchCounter = fetchCounter - 1;
                 if (fetchCounter <= 0) {
@@ -749,6 +781,12 @@
             fetchCallbackBinary("get_primary_color", data => {
                 const bytes = new Uint8Array(data);
                 primary_color.value = rgbToHex(bytes[0], bytes[1], bytes[2]);
+                fetchEnd();
+            });
+
+            fetchCallbackBinary("get_fan", data => {
+                const bytes = new Uint8Array(data);
+                setFanSwitchPosition(bytes[0]);
                 fetchEnd();
             });
         });
