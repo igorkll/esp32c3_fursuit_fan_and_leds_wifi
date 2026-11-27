@@ -537,6 +537,22 @@
 
             text-shadow: 0px 0px 6px #000000;
         }
+
+        .scroll-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 10px;
+
+            background-color: #333333;
+            padding: 10px;
+            border-radius: 16px;
+
+            height: 300px;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
     </style>
 </head>
 <body>
@@ -572,7 +588,11 @@
             <button id="leds_reset" class="button restart-icon"></button>
         </div>
 
-        <div class="big-button">
+        <div class="scroll-container" id="separate_scroll_container">
+            
+        </div>
+
+        <div class="big-button" id="reset_separate_colors">
             reset separate colors
         </div>
     </div>
@@ -850,17 +870,39 @@
         const dis_fan_slider = document.getElementById("dis_fan_slider");
         bindSlider(dis_fan_slider, 'dis_fan_reset', 'dis_fan_text', 30, sliderFormatString, "set_dis_fan", true);
 
-        // --------------------- 
+        // --------------------- leds slider
 
         const leds_slider = document.getElementById("leds_slider");
         bindSlider(leds_slider, 'leds_reset', 'leds_text', 16, sliderFormatByte, "set_led_count", true);
 
-        // ---------------------
+        // --------------------- separate menu open & close
 
         document.getElementById("separate-button").addEventListener("click", () => selectController("led-setup"));
         document.querySelectorAll(".back-to-main").forEach(element => {
             element.addEventListener("click", () => selectController("main-setup"))
         })
+
+        // --------------------- separate menu
+
+        const separate_elements = [];
+
+        const alloc_separate_element = (enable, r, g, b) => {
+            
+        }
+
+        const alloc_separate_elements = (bytes) => {
+            let count = bytes[0];
+            for (let i = 0; i < count; i++) {
+                let startColorIdx = 1 + count + (i * 3);
+                alloc_separate_element(bytes[1 + i], bytes[startColorIdx], bytes[startColorIdx + 1], bytes[startColorIdx + 2]);
+            }
+        };
+
+
+        document.getElementById("reset_separate_colors").addEventListener("click", () => {
+            send("reset_separate_all");
+
+        });
 
         // --------------------- fetch data
 
@@ -870,7 +912,7 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            let fetchCounter = 8;
+            let fetchCounter = 9;
             const fetchEnd = () => {
                 fetchCounter = fetchCounter - 1;
                 if (fetchCounter <= 0) {
@@ -922,6 +964,12 @@
                 const bytes = new Uint8Array(data);
                 leds_slider.max = bytes[1];
                 leds_slider._setValue(bytes[0]);
+                fetchEnd();
+            });
+
+            fetchCallbackBinary("get_separate_all", data => {
+                const bytes = new Uint8Array(data);
+                alloc_separate_elements(bytes)
                 fetchEnd();
             });
         });
