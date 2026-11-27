@@ -712,7 +712,7 @@
             });
         }
 
-        function bindSlider(slider, resetButtonName, textName, defaultValue, encodeCallback, endpointBasename, noSendWithoutSave=false) {
+        function bindSlider(slider, resetButtonName, textName, defaultValue, encodeCallback, endpointBasename, noSendWithoutSave=false, postSaveCallback) {
             let endpointWithSave = `${endpointBasename}_and_save`
 
             let lastExecutionTime = 0;
@@ -746,6 +746,7 @@
                 timerId = null;
                 
                 send(endpointWithSave, encodeCallback(slider.value));
+                if (postSaveCallback) postSaveCallback(slider.value);
             });
 
             document.getElementById(resetButtonName).addEventListener('click', () => {
@@ -755,6 +756,7 @@
                 slider.value = defaultValue;
                 textObj.textContent = defaultValue;
                 send(endpointWithSave, encodeCallback(slider.value));
+                if (postSaveCallback) postSaveCallback(slider.value);
             });
 
             slider._setValue = (value) => {
@@ -845,7 +847,7 @@
         primary_color.addEventListener("change", (event) => {
             let rgb = hexToRgb(event.target.value)
             send("set_primary_color", new Uint8Array([rgb.r, rgb.g, rgb.b]));
-        })
+        });
 
         // --------------------- light slider
 
@@ -872,8 +874,10 @@
 
         // --------------------- leds slider
 
+        let realloc_elements_count;
+
         const leds_slider = document.getElementById("leds_slider");
-        bindSlider(leds_slider, 'leds_reset', 'leds_text', 16, sliderFormatByte, "set_led_count", true);
+        bindSlider(leds_slider, 'leds_reset', 'leds_text', 16, sliderFormatByte, "set_led_count", true, ledsCount => realloc_elements_count(ledsCount));
 
         // --------------------- separate menu open & close
 
@@ -884,24 +888,80 @@
 
         // --------------------- separate menu
 
-        const separate_elements = [];
+        const separate_scroll_container = document.getElementById("separate_scroll_container");
 
-        const alloc_separate_element = (enable, r, g, b) => {
+        let separate_elements = [];
+
+        const alloc_separate_element = (idx, enabled, r, g, b) => {
+            const send_data = () => {
+                send("set_separate_color", new Uint8Array([idx, enabled ? 1 : 0, r, g, b]));
+            };
             
+            const separate_element = document.createElement("div");
+
+            const text_title = document.createElement("div");
+            text_title.textContent = idx + 1;
+            separate_element.appendChild(text_title);
+
+            const enabled_checkbox = document.createElement("input");
+            enabled_checkbox.type = 'checkbox';
+            enabled_checkbox.checked = enabled;
+            enabled_checkbox.addEventListener("change", e => {
+                enabled = enable_switch.checked;
+                send_data();
+            });
+            separate_element.appendChild(enabled_checkbox);
+
+            const colorpicker = document.createElement("input");
+            colorpicker.type = 'color';
+            colorpicker.value = rgbToHex(r, g, b);
+            colorpicker.addEventListener("change", (event) => {
+                let rgb = hexToRgb(event.target.value)
+                r = rgb.r;
+                g = rgb.g;
+                b = rgb.b;
+                send_data();
+            });
+            separate_element.appendChild(colorpicker);
+
+            separate_scroll_container.appendChild(separate_element);
+
+            separate_elements.push([separate_element, () => {
+                enabled = false;
+                r = 0;
+                g = 0;
+                b = 0;
+            }]);
         }
 
         const alloc_separate_elements = (bytes) => {
             let count = bytes[0];
             for (let i = 0; i < count; i++) {
                 let startColorIdx = 1 + count + (i * 3);
-                alloc_separate_element(bytes[1 + i], bytes[startColorIdx], bytes[startColorIdx + 1], bytes[startColorIdx + 2]);
+                alloc_separate_element(i, bytes[1 + i] > 0, bytes[startColorIdx], bytes[startColorIdx + 1], bytes[startColorIdx + 2]);
             }
         };
 
+        realloc_elements_count = (ledsCount) => {
+            if (ledsCount > separate_elements.length) {
+                let new_count = ledsCount - separate_elements.length;
+                for (let i = 0; i < new_count; i++) {
+                    alloc_separate_element(separate_elements.length, false, 0, 0, 0);
+                }
+            } else if (ledsCount < separate_elements.length) {
+                let del_count = separate_elements.length - ledsCount;
+
+                for (let i = 0; i < del_count; i++) {
+                    
+                }
+            }
+        };
 
         document.getElementById("reset_separate_colors").addEventListener("click", () => {
+            separate_elements.forEach(arr => {
+                arr[1]();
+            })
             send("reset_separate_all");
-
         });
 
         // --------------------- fetch data
@@ -969,7 +1029,7 @@
 
             fetchCallbackBinary("get_separate_all", data => {
                 const bytes = new Uint8Array(data);
-                alloc_separate_elements(bytes)
+                alloc_separate_elements(bytes);
                 fetchEnd();
             });
         });
