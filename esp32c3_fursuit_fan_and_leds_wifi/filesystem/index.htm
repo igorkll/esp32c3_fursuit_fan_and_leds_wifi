@@ -754,6 +754,16 @@
             send("set_fan", new Uint8Array([position]));
         });
 
+        // --------------------- en_fan_slider
+
+        const en_fan_slider = document.getElementById("en_fan_slider");
+        bindSlider(en_fan_slider, 'en_fan_reset', 60, sliderFormatString, "set_en_fan")
+
+        // --------------------- dis_fan_slider
+
+        const dis_fan_slider = document.getElementById("dis_fan_slider");
+        bindSlider(dis_fan_slider, 'dis_fan_reset', 60, sliderFormatString, "set_dis_fan")
+
         // ---------------------
 
         document.getElementById("separate-button").addEventListener("click", () => selectController("led-setup"));

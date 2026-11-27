@@ -23,6 +23,9 @@ typedef struct {
     bool other_colors_overwrite[MAX_LED_COUNT];
 
     bool separate_colors_enabled;
+
+    uint16_t en_fan_time;
+    uint16_t dis_fan_time;
 } config_t;
 
 config_t currentConfig;
@@ -33,7 +36,10 @@ static const config_t defaultConfig = {
     .led_light = DEFAULT_LIGHT_LEVEL,
     .led_state = true,
     .fan_state = Fan_state_off,
-    .separate_colors_enabled = true
+    .separate_colors_enabled = true,
+
+    .en_fan_time = 10,
+    .dis_fan_time = 30
 };
 
 static void nvs_init() {
@@ -228,6 +234,14 @@ static void* callback_get_separate_enabled(void* user_ctx, char* content, size_t
     *retsize = 1;
     uint8_t* ret = malloc(1);
     ret[0] = currentConfig.separate_colors_enabled;
+    return ret;
+}
+
+static void* callback_get_en_fan(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    ESP_LOGI(TAG, "get en fan: %i", currentConfig.en_fan_time);
+    *retsize = 1;
+    uint8_t* ret = malloc(1);
+    ret[0] = currentConfig.en_fan_time;
     return ret;
 }
 
