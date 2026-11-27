@@ -51,6 +51,30 @@ static void nvs_init() {
     ESP_ERROR_CHECK(nvs_open("nvs", NVS_READWRITE, &nvs));
 }
 
+static int atoi_with_limit(const char* str, int max_length) {
+    long result = 0;
+    int sign = 1;
+    int i = 0;
+
+    if (str[i] == '-' || str[i] == '+') {
+        sign = (str[i] == '-') ? -1 : 1;
+        i++;
+    }
+
+    for (int length = 0; length < max_length && str[i] >= '0' && str[i] <= '9'; i++, length++) {
+        result = result * 10 + (str[i] - '0');
+
+        if (result * sign > INT_MAX) {
+            return INT_MAX;
+        }
+        if (result * sign < INT_MIN) {
+            return INT_MIN;
+        }
+    }
+
+    return (int)(result * sign);
+}
+
 static void load_config() {
     ESP_LOGI(TAG, "loading config...");
     FILE* file = fopen("/storage/config", "rb");
@@ -237,11 +261,33 @@ static void* callback_get_separate_enabled(void* user_ctx, char* content, size_t
     return ret;
 }
 
+static void callback_set_en_fan_and_save(void* user_ctx, char* content, size_t len) {
+    currentConfig.en_fan_time = atoi_with_limit(content, len);
+    ESP_LOGI(TAG, "set en fan: %i", currentConfig.en_fan_time);
+    save_config();
+    update_fan_state();
+}
+
+static void callback_set_dis_fan_and_save(void* user_ctx, char* content, size_t len) {
+    currentConfig.dis_fan_time = atoi_with_limit(content, len);
+    ESP_LOGI(TAG, "set dis fan: %i", currentConfig.dis_fan_time);
+    save_config();
+    update_fan_state();
+}
+
 static void* callback_get_en_fan(void* user_ctx, char* content, size_t len, size_t* retsize) {
     ESP_LOGI(TAG, "get en fan: %i", currentConfig.en_fan_time);
-    *retsize = 1;
-    uint8_t* ret = malloc(1);
-    ret[0] = currentConfig.en_fan_time;
+    char* ret = malloc(17);
+    itoa(currentConfig.en_fan_time, ret, 10);
+    *retsize = strlen(ret);
+    return ret;
+}
+
+static void* callback_get_dis_fan(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    ESP_LOGI(TAG, "get dis fan: %i", currentConfig.dis_fan_time);
+    char* ret = malloc(17);
+    itoa(currentConfig.dis_fan_time, ret, 10);
+    *retsize = strlen(ret);
     return ret;
 }
 
@@ -280,6 +326,10 @@ void app_main() {
     wifi_attachCallback_post("/set_separate_enabled", callback_set_separate_enabled, NULL);
     wifi_attachCallback_get_binary("/get_separate_enabled", callback_get_separate_enabled, NULL);
 
+    wifi_attachCallback_post("/set_en_fan_and_save", callback_set_en_fan_and_save, NULL);
+    wifi_attachCallback_post("/set_dis_fan_and_save", callback_set_dis_fan_and_save, NULL);
+    wifi_attachCallback_get("/get_en_fan", callback_get_en_fan, NULL);
+    wifi_attachCallback_get("/get_dis_fan", callback_get_dis_fan, NULL);
     
 }
 
