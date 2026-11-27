@@ -702,6 +702,11 @@
                 textObj.textContent = defaultValue;
                 send(endpointWithSave, encodeCallback(slider.value));
             });
+
+            slider._setValue = (value) => {
+                slider.value = value;
+                textObj.textContent = value;
+            };
         }
 
         function sliderFormatByte(value) {
@@ -843,7 +848,7 @@
 
             fetchCallbackBinary("get_light", data => {
                 const bytes = new Uint8Array(data);
-                light_slider.value = bytes[0];
+                light_slider._setValue(bytes[0]);
                 fetchEnd();
             });
 
@@ -860,18 +865,18 @@
             });
 
             fetchCallback("get_en_fan", data => {
-                en_fan_slider.value = parseInt(data);
+                en_fan_slider._setValue(parseInt(data));
                 fetchEnd();
             });
 
             fetchCallback("get_dis_fan", data => {
-                dis_fan_slider.value = parseInt(data);
+                dis_fan_slider._setValue(parseInt(data));
                 fetchEnd();
             });
 
             fetchCallbackBinary("get_led_count", data => {
                 const bytes = new Uint8Array(data);
-                
+
                 fetchEnd();
             });
         });
