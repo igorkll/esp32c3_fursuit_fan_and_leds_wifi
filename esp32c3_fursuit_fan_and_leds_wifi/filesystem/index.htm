@@ -552,6 +552,25 @@
 
             overflow-y: auto;
             overflow-x: hidden;
+
+            clip-path: inset(0 round 15px);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.08); 
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.35); 
+            border-radius: 10px;
+            border: 2px solid transparent; 
+            background-clip: padding-box;
         }
     </style>
 </head>
@@ -931,6 +950,9 @@
                 r = 0;
                 g = 0;
                 b = 0;
+
+                enabled_checkbox.checked = enabled;
+                colorpicker.value = rgbToHex(r, g, b);
             }]);
         }
 
