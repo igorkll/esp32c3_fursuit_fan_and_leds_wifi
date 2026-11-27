@@ -458,6 +458,7 @@
             cursor: pointer;
 
             transition: 0.2s;
+            margin: 0;
         }
 
         .mini-switch::before {
@@ -465,11 +466,11 @@
 
             position: absolute;
 
-            width: calc(25px - (6px * 2));
-            height: calc(25px - (6px * 2));
+            width: calc(25px - (3px * 2));
+            height: calc(25px - (3px * 2));
 
-            left: 6px;
-            top: 6px;
+            left: 3px;
+            top: 3px;
 
             border-radius: 50%;
             background: white;
@@ -479,13 +480,13 @@
         }
 
         .mini-switch:checked {
-            background: #b8b8b8;
-            outline: 2px solid #e2e2e2;
+            background: #c15151;
+            outline: 2px solid #ff0000;
         }
 
         .mini-switch:checked::before {
             transform: translateX(calc(50px - 25px));
-            outline: 2px solid #ffffff;
+            outline: 2px solid #ff3131;
         }
 
         .fan-switch {
