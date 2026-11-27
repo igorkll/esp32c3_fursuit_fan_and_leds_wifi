@@ -269,7 +269,7 @@
         }
 
         .bigfont {
-            font-size: 40px;
+            font-size: 30px;
         }
 
         .developer-info {
@@ -541,6 +541,15 @@
                 <input type="checkbox" id="enable-separate" class="enable-switch">
             </div>
         </div>
+
+        <div class="container">
+            <div class="constsize-title">Leds</div>
+            <div class="slider-wrap">
+                <input type="range" min="1" max="32" value="0" class="slider" id="leds_slider">
+                <div class="slider-text" id="leds_text"></div>
+            </div>
+            <button id="leds_reset" class="button restart-icon"></button>
+        </div>
     </div>
 
     <div class="controller" id="main-setup">
@@ -579,7 +588,7 @@
             
             <div class="vcontainer">
                 <div class="title smallfont">separate</div>
-                <button class="button-flat" id="separate-button">SETS</button>
+                <button class="button-flat" id="separate-button">LEDS</button>
             </div>
         </div>
 
@@ -816,6 +825,11 @@
         const dis_fan_slider = document.getElementById("dis_fan_slider");
         bindSlider(dis_fan_slider, 'dis_fan_reset', 'dis_fan_text', 30, sliderFormatString, "set_dis_fan", true);
 
+        // --------------------- 
+
+        const leds_slider = document.getElementById("leds_slider");
+        bindSlider(leds_slider, 'leds_reset', 'leds_text', 16, sliderFormatByte, "set_led_count", true);
+
         // ---------------------
 
         document.getElementById("separate-button").addEventListener("click", () => selectController("led-setup"));
@@ -881,7 +895,8 @@
 
             fetchCallbackBinary("get_led_count", data => {
                 const bytes = new Uint8Array(data);
-
+                leds_slider.max = bytes[1];
+                leds_slider.value = bytes[0];
                 fetchEnd();
             });
         });
