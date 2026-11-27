@@ -31,6 +31,8 @@ typedef struct {
 config_t currentConfig;
 static nvs_handle_t nvs;
 
+static const char* config_path = "/storage/config";
+
 static const config_t defaultConfig = {
     .led_count = DEFAULT_LED_COUNT,
     .led_light = DEFAULT_LIGHT_LEVEL,
@@ -42,6 +44,49 @@ static const config_t defaultConfig = {
     .dis_fan_time = 30
 };
 
+static void wait(float milliseconds) {
+    uint32_t ticks = milliseconds / portTICK_PERIOD_MS;
+    if (ticks < 1) ticks = 1;
+    vTaskDelay(ticks);
+}
+
+static void boot_button_init() {
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << BOOT_BUTTON_GPIO),
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE,
+    };
+    gpio_config(&io_conf);
+}
+
+static bool boot_button_is_pressed() {
+    return gpio_get_level(BOOT_BUTTON_GPIO) == 0;
+}
+
+static void service_buttons_check() {
+    if (boot_button_is_pressed()) {
+        ESP_LOGE(TAG, "reset settings...");
+
+        ledstrip_setLight(16);
+        for (size_t i = 0; i < 3; i++) {
+            ledstrip_clear(255, 0, 0);
+            wait(500);
+
+            ledstrip_clear(255, 255, 0);
+            wait(500);
+
+            ledstrip_clear(0, 0, 0);
+            wait(500);
+        }
+
+        remove(config_path);
+        esp_restart();
+        while (true) wait(1000);
+    }
+}
+
 static void nvs_init() {
     esp_err_t ret = nvs_flash_init();
     if (ret != ESP_OK) {
@@ -49,12 +94,6 @@ static void nvs_init() {
         nvs_flash_init();
     }
     ESP_ERROR_CHECK(nvs_open("nvs", NVS_READWRITE, &nvs));
-}
-
-static void wait(float milliseconds) {
-    uint32_t ticks = milliseconds / portTICK_PERIOD_MS;
-    if (ticks < 1) ticks = 1;
-    vTaskDelay(ticks);
 }
 
 static int atoi_with_limit(const char* str, int max_length) {
@@ -83,7 +122,7 @@ static int atoi_with_limit(const char* str, int max_length) {
 
 static void load_config() {
     ESP_LOGI(TAG, "loading config...");
-    FILE* file = fopen("/storage/config", "rb");
+    FILE* file = fopen(config_path, "rb");
     if (file) {
         fread(&currentConfig, 1, sizeof(config_t), file);
         fclose(file);
@@ -97,7 +136,7 @@ static void load_config() {
 
 static void save_config() {
     ESP_LOGI(TAG, "saving config...");
-    FILE* file = fopen("/storage/config", "wb");
+    FILE* file = fopen(config_path, "wb");
     if (file) {
         fwrite(&currentConfig, 1, sizeof(config_t), file);
         fclose(file);
@@ -108,7 +147,10 @@ static void save_config() {
 }
 
 static void deadlock() {
-    while (true) wait(1000);
+    while (true) {
+        service_buttons_check();
+        wait(100);
+    }
 }
 
 static int32_t old_en_fan_time = -1;
@@ -403,6 +445,9 @@ static void* callback_get_separate_all(void* user_ctx, char* content, size_t len
 }
 
 void app_main() {
+    boot_button_init();
+    service_buttons_check();
+
     if (!filesystem_init()) {
         ESP_LOGE(TAG, "failed to init filesystem");
         deadlock();
@@ -445,6 +490,10 @@ void app_main() {
     wifi_attachCallback_post("/set_dis_fan_and_save", callback_set_dis_fan_and_save, NULL);
     wifi_attachCallback_get("/get_en_fan", callback_get_en_fan, NULL);
     wifi_attachCallback_get("/get_dis_fan", callback_get_dis_fan, NULL);
-    
+
+    while (true) {
+        service_buttons_check();
+        wait(100);
+    }
 }
 

@@ -16,3 +16,5 @@
 
 #define WIFI_NAME "РЫБА"
 #define WIFI_PASSWORD "11221133"
+
+#define BOOT_BUTTON_GPIO 9
