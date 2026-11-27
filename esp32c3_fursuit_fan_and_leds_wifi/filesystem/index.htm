@@ -180,6 +180,27 @@
             background-color: rgb(121, 121, 121);
         }
 
+        .slider-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .slider-wrap > * {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slider-text {
+            font-size: 30px;
+            color: #ffffff;
+            text-shadow: 0px 0px 3px #000000;
+            pointer-events: none;
+            text-align: center;
+        }
+
         .slider {
             flex: 1;
             margin: 0;
@@ -522,7 +543,10 @@
 
         <div class="container">
             <div class="constsize-title">Light</div>
-            <input type="range" min="0" max="255" value="0" class="slider" id="light_slider">
+            <div class="slider-wrap">
+                <input type="range" min="0" max="255" value="0" class="slider" id="light_slider">
+                <div class="slider-text" id="light_text"></div>
+            </div>
             <button id="light_reset" class="button restart-icon"></button>
         </div>
         
@@ -558,13 +582,19 @@
 
         <div class="container">
             <div class="constsize-title">Enabled</div>
-            <input type="range" min="1" max="300" value="0" class="slider" id="en_fan_slider">
+            <div class="slider-wrap">
+                <input type="range" min="1" max="300" value="0" class="slider" id="en_fan_slider">
+                <div class="slider-text" id="en_fan_text"></div>
+            </div>
             <button id="en_fan_reset" class="button restart-icon"></button>
         </div>
 
         <div class="container">
             <div class="constsize-title">Disabled</div>
-            <input type="range" min="1" max="300" value="0" class="slider" id="dis_fan_slider">
+            <div class="slider-wrap">
+                <input type="range" min="1" max="300" value="0" class="slider" id="dis_fan_slider">
+                <div class="slider-text" id="dis_fan_text"></div>
+            </div>
             <button id="dis_fan_reset" class="button restart-icon"></button>
         </div>
     </div>
@@ -619,14 +649,19 @@
             return byteArray.length > index ? byteArray[index] : 0;
         }
 
-        function bindSlider(slider, resetButtonName, defaultValue, encodeCallback, endpointBasename, noSendWithoutSave=false) {
+        function bindSlider(slider, resetButtonName, textName, defaultValue, encodeCallback, endpointBasename, noSendWithoutSave=false) {
             let endpointWithSave = `${endpointBasename}_and_save`
 
             let lastExecutionTime = 0;
             const throttleDelay = 200;
             let timerId = null;
 
+            const textObj = document.getElementById(textName);
+            textObj.textContent = slider.value;
+
             slider.oninput = function() {
+                textObj.textContent = slider.value;
+
                 if (noSendWithoutSave) return;
 
                 const currentTime = Date.now();
@@ -655,6 +690,7 @@
                 timerId = null;
 
                 slider.value = defaultValue;
+                textObj.textContent = defaultValue;
                 send(endpointWithSave, encodeCallback(slider.value));
             });
         }
@@ -746,7 +782,7 @@
         // --------------------- light slider
 
         const light_slider = document.getElementById("light_slider");
-        bindSlider(light_slider, 'light_reset', 64, sliderFormatByte, "set_light")
+        bindSlider(light_slider, 'light_reset', 'light_text', 64, sliderFormatByte, "set_light");
 
         // --------------------- fan switch
 
@@ -759,12 +795,12 @@
         // --------------------- en_fan_slider
 
         const en_fan_slider = document.getElementById("en_fan_slider");
-        bindSlider(en_fan_slider, 'en_fan_reset', 10, sliderFormatString, "set_en_fan", true)
+        bindSlider(en_fan_slider, 'en_fan_reset', 'en_fan_text', 10, sliderFormatString, "set_en_fan", true);
 
         // --------------------- dis_fan_slider
 
         const dis_fan_slider = document.getElementById("dis_fan_slider");
-        bindSlider(dis_fan_slider, 'dis_fan_reset', 30, sliderFormatString, "set_dis_fan", true)
+        bindSlider(dis_fan_slider, 'dis_fan_reset', 'dis_fan_text', 30, sliderFormatString, "set_dis_fan", true);
 
         // ---------------------
 
