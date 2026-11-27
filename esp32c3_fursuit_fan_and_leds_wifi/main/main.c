@@ -370,10 +370,12 @@ static void callback_set_separate_color(void* user_ctx, char* content, size_t le
     bool colB = content[4];
     ESP_LOGI(TAG, "set separate color (%i, %i): %i %i %i", idx, en, colR, colG, colB);
 
+    size_t idx3 = idx * 3;
+
     currentConfig.other_colors_overwrite[idx] = en;
-    currentConfig.other_colors[idx + 0] = colR;
-    currentConfig.other_colors[idx + 1] = colG;
-    currentConfig.other_colors[idx + 2] = colB;
+    currentConfig.other_colors[idx3 + 0] = colR;
+    currentConfig.other_colors[idx3 + 1] = colG;
+    currentConfig.other_colors[idx3 + 2] = colB;
 
     save_config();
     update_ledstrip_state();
@@ -391,8 +393,8 @@ static void* callback_get_separate_all(void* user_ctx, char* content, size_t len
 
     for (size_t i = 0; i < currentConfig.led_count; i++) {
         size_t i2 = 1 + currentConfig.led_count + (i * 3);
-        for (size_t i3 = 0; i3 < 2; i3++) {
-            ret[i2 + i3] = currentConfig.other_colors[i + i3];
+        for (size_t i3 = 0; i3 < 3; i3++) {
+            ret[i2 + i3] = currentConfig.other_colors[(i * 3) + i3];
         }
     }
 
