@@ -111,18 +111,63 @@ static void deadlock() {
     while (true) wait(1000);
 }
 
+static int32_t old_en_fan_time = -1;
+static int32_t old_dis_fan_time = -1;
+
+static TaskHandle_t fan_task_handle = NULL;
+
+static void fan_task(void *pvParameters) {
+    while (true) {
+        fan_setState(true);
+        vTaskDelay(pdMS_TO_TICKS(currentConfig.en_fan_time * 1000));
+        fan_setState(false);
+        vTaskDelay(pdMS_TO_TICKS(currentConfig.dis_fan_time * 1000));
+    }
+}
+
+static void disable_fan_timer() {
+    old_en_fan_time = -1;
+    old_dis_fan_time = -1;
+
+    if (fan_task_handle) {
+        free(fan_task_handle);
+        fan_task_handle = NULL;
+    }
+}
+
+static void enable_fan_timer() {
+    if (fan_task_handle) disable_fan_timer();
+
+    xTaskCreate(
+        fan_task,
+        NULL,
+        4096,
+        NULL,
+        1,
+        &fan_task_handle
+    );
+}
+
 static void update_fan_state() {
     switch (currentConfig.fan_state) {
         case Fan_state_off:
+            disable_fan_timer();
             fan_setState(false);
             break;
 
         case Fan_state_on:
+            disable_fan_timer();
             fan_setState(true);
             break;
 
         case Fan_state_timer:
-            fan_setState(true);
+            if (currentConfig.en_fan_time != old_en_fan_time ||
+                currentConfig.dis_fan_time != old_dis_fan_time) {
+                enable_fan_timer();
+
+                old_en_fan_time = currentConfig.en_fan_time;
+                old_dis_fan_time = currentConfig.dis_fan_time;
+            }
             break;
     }
 }
@@ -225,7 +270,7 @@ static void* callback_get_primary_color(void* user_ctx, char* content, size_t le
 static void callback_set_led_count(void* user_ctx, char* content, size_t len) {
     currentConfig.led_count = content[0];
     ESP_LOGI(TAG, "set led count: %i, %i", currentConfig.led_count, MAX_LED_COUNT);
-    
+
     if (currentConfig.led_count > MAX_LED_COUNT) currentConfig.led_count = MAX_LED_COUNT;
 
     for (size_t i = currentConfig.led_count; i < MAX_LED_COUNT; i++) {
