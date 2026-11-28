@@ -1127,6 +1127,25 @@
             sendNext();
         });
 
+        function update_enabled_wifi_fields() {
+            if (change_name.checked) {
+                new_wifi_ssid.classList.remove("disabled-element");
+            } else {
+                new_wifi_ssid.classList.add("disabled-element");
+            }
+
+            if (change_password.checked) {
+                new_wifi_passwd1.classList.remove("disabled-element");
+                new_wifi_passwd2.classList.remove("disabled-element");
+            } else {
+                new_wifi_passwd1.classList.add("disabled-element");
+                new_wifi_passwd2.classList.add("disabled-element");
+            }
+        }
+
+        change_name.addEventListener("change", () => update_enabled_wifi_fields());
+        update_enabled_wifi_fields();
+
         // --------------------- back to
 
         document.querySelectorAll(".back-to-main").forEach(element => {
