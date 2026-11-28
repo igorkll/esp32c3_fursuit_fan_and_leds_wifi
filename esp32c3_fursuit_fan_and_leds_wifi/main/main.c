@@ -433,6 +433,23 @@ static void* callback_get_separate_all(void* user_ctx, char* content, size_t len
     return ret;
 }
 
+static void callback_change_ssid(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    const char* ret_str = NULL;
+
+    if (len >= WIFI_MAX_SSID_LEN) {
+        ret_str = "the network name cannot be more than 31 bytes";
+    } else {
+        
+        ret_str = "OK";
+    }
+
+    size_t _retsize = strlen(ret_str);
+    void* ret = malloc(_retsize);
+    memcpy(ret, ret_str, _retsize);
+    *retsize = _retsize;
+    return ret;
+}
+
 void app_main() {
     boot_button_init();
     service_buttons_check();
@@ -479,6 +496,9 @@ void app_main() {
     wifi_attachCallback_post("/set_dis_fan_and_save", callback_set_dis_fan_and_save, NULL);
     wifi_attachCallback_get("/get_en_fan", callback_get_en_fan, NULL);
     wifi_attachCallback_get("/get_dis_fan", callback_get_dis_fan, NULL);
+
+    wifi_attachCallback_get("/change_ssid", callback_change_ssid, NULL);
+    wifi_attachCallback_get("/change_password", callback_change_password, NULL);
 
     while (true) {
         service_buttons_check();
