@@ -443,7 +443,9 @@ static char* change_passwd = NULL;
 static void* callback_change_ssid(void* user_ctx, char* content, size_t len, size_t* retsize) {
     const char* ret_str = NULL;
 
-    if (len >= WIFI_MAX_SSID_LEN) {
+    if (change_ssid) {
+        ret_str = "Error 8";
+    } else if (len >= WIFI_MAX_SSID_LEN) {
         ret_str = "the network name cannot be more than 31 bytes";
     } else if (len == 0) {
         ret_str = "the network name cannot be empty";
@@ -462,10 +464,20 @@ static void* callback_change_ssid(void* user_ctx, char* content, size_t len, siz
     return ret;
 }
 
+static void* get_ssid(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    size_t _retsize = strlen(currentConfig.wifi_ssid);
+    void* ret = malloc(_retsize);
+    memcpy(ret, currentConfig.wifi_ssid, _retsize);
+    *retsize = _retsize;
+    return ret;
+}
+
 static void* callback_change_password(void* user_ctx, char* content, size_t len, size_t* retsize) {
     const char* ret_str = NULL;
 
-    if (len >= WIFI_MAX_PASSWD_LEN) {
+    if (change_passwd) {
+        ret_str = "Error 8";
+    } else if (len >= WIFI_MAX_PASSWD_LEN) {
         ret_str = "the network password cannot be more than 63 bytes";
     } else {
         change_passwd = malloc(len + 1);
@@ -534,6 +546,7 @@ void app_main() {
     wifi_attachCallback_get("/get_dis_fan", callback_get_dis_fan, NULL);
 
     wifi_attachCallback_get("/change_ssid", callback_change_ssid, NULL);
+    wifi_attachCallback_get("/get_ssid", callback_get_ssid, NULL);
     wifi_attachCallback_get("/change_password", callback_change_password, NULL);
     wifi_attachCallback_post("/apply_wifi_changes", callback_apply_wifi_changes, NULL);
 
