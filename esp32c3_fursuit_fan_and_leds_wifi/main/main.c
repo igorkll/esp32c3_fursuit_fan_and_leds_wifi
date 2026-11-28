@@ -464,7 +464,7 @@ static void* callback_change_ssid(void* user_ctx, char* content, size_t len, siz
     return ret;
 }
 
-static void* get_ssid(void* user_ctx, char* content, size_t len, size_t* retsize) {
+static void* callback_get_ssid(void* user_ctx, char* content, size_t len, size_t* retsize) {
     size_t _retsize = strlen(currentConfig.wifi_ssid);
     void* ret = malloc(_retsize);
     memcpy(ret, currentConfig.wifi_ssid, _retsize);
