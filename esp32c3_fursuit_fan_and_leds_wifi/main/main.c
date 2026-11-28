@@ -436,6 +436,7 @@ static void* callback_get_separate_all(void* user_ctx, char* content, size_t len
     return ret;
 }
 
+static bool apply_wifi_changes = false;
 static char* change_ssid = NULL;
 static char* change_passwd = NULL;
 
@@ -479,6 +480,10 @@ static void* callback_change_password(void* user_ctx, char* content, size_t len,
     memcpy(ret, ret_str, _retsize);
     *retsize = _retsize;
     return ret;
+}
+
+static void callback_apply_wifi_changes(void* user_ctx, char* content, size_t len) {
+    apply_wifi_changes = true;
 }
 
 void app_main() {
@@ -530,18 +535,28 @@ void app_main() {
 
     wifi_attachCallback_get("/change_ssid", callback_change_ssid, NULL);
     wifi_attachCallback_get("/change_password", callback_change_password, NULL);
+    wifi_attachCallback_post("/apply_wifi_changes", callback_apply_wifi_changes, NULL);
 
     while (true) {
         service_buttons_check();
 
-        if (change_ssid || change_passwd) {
-            if (change_ssid) set_wifi_ssid(change_ssid);
-            if (change_passwd) set_wifi_passwd(change_passwd);
+        if (apply_wifi_changes) {
+            apply_wifi_changes = false;
+
+            if (change_ssid) {
+                set_wifi_ssid(change_ssid);
+                free(change_ssid);
+                change_ssid = NULL;
+            }
+
+            if (change_passwd) {
+                set_wifi_passwd(change_passwd);
+                free(change_passwd);
+                change_passwd = NULL;
+            }
+
             save_config();
             wifi_reloadSettings();
-
-            change_ssid = NULL;
-            change_passwd = NULL;
         }
 
         wait(100);

@@ -687,6 +687,10 @@
             </div>
             <button id="leds_reset" class="button restart-icon"></button>
         </div>
+
+        <div class="big-button" id="change-wifi-open">
+            Change wifi name & password
+        </div>
     </div>
 
     <div class="controller" id="main-setup">
@@ -979,6 +983,7 @@
 
         document.getElementById("separate-button").addEventListener("click", () => selectController("led-setup"));
         document.getElementById("device-settings").addEventListener("click", () => selectController("device-setup"));
+        document.getElementById("change-wifi-open").addEventListener("click", () => selectController("wifi-setup"));
 
         // --------------------- back to main
 
