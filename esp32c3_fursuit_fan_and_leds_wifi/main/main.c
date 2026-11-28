@@ -100,10 +100,12 @@ static int atoi_with_limit(const char* str, int max_length) {
     return (int)(result * sign);
 }
 
-static void set_wifi_ssid_and_passwd(const char* ssid, const char* passwd) {
+static void set_wifi_ssid(const char* ssid) {
     strncpy(currentConfig.wifi_ssid, ssid, WIFI_MAX_SSID_LEN - 1);
     currentConfig.wifi_ssid[WIFI_MAX_SSID_LEN - 1] = '\0';
+}
 
+static void set_wifi_passwd(const char* passwd) {
     strncpy(currentConfig.wifi_passwd, passwd, WIFI_MAX_PASSWD_LEN - 1);
     currentConfig.wifi_passwd[WIFI_MAX_PASSWD_LEN - 1] = '\0';
 }
@@ -118,7 +120,8 @@ static void load_config() {
     } else {
         memset(&currentConfig, 0, sizeof(config_t));
         memcpy(&currentConfig, &defaultConfig, sizeof(config_t));
-        set_wifi_ssid_and_passwd(WIFI_NAME, WIFI_PASSWORD);
+        set_wifi_ssid(WIFI_NAME);
+        set_wifi_passwd(WIFI_PASSWORD);
         ESP_LOGI(TAG, "loaded default config!");
     }
 }
@@ -433,12 +436,38 @@ static void* callback_get_separate_all(void* user_ctx, char* content, size_t len
     return ret;
 }
 
-static void callback_change_ssid(void* user_ctx, char* content, size_t len, size_t* retsize) {
+static char* change_ssid = NULL;
+static char* change_passwd = NULL;
+
+static void* callback_change_ssid(void* user_ctx, char* content, size_t len, size_t* retsize) {
     const char* ret_str = NULL;
 
     if (len >= WIFI_MAX_SSID_LEN) {
         ret_str = "the network name cannot be more than 31 bytes";
     } else {
+        change_ssid = malloc(len + 1);
+        memcpy(change_ssid, content, len);
+        change_ssid[len] = '\0';
+        
+        ret_str = "OK";
+    }
+
+    size_t _retsize = strlen(ret_str);
+    void* ret = malloc(_retsize);
+    memcpy(ret, ret_str, _retsize);
+    *retsize = _retsize;
+    return ret;
+}
+
+static void* callback_change_password(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    const char* ret_str = NULL;
+
+    if (len >= WIFI_MAX_PASSWD_LEN) {
+        ret_str = "the network password cannot be more than 63 bytes";
+    } else {
+        change_passwd = malloc(len + 1);
+        memcpy(change_passwd, content, len);
+        change_passwd[len] = '\0';
         
         ret_str = "OK";
     }
@@ -502,6 +531,16 @@ void app_main() {
 
     while (true) {
         service_buttons_check();
+
+        if (change_ssid || change_passwd) {
+            if (change_ssid) set_wifi_ssid(change_ssid);
+            if (change_passwd) set_wifi_passwd(change_passwd);
+            wifi_reloadSettings();
+
+            change_ssid = NULL;
+            change_passwd = NULL;
+        }
+
         wait(100);
     }
 }
