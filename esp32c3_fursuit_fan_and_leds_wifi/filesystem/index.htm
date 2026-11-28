@@ -678,6 +678,13 @@
         LOADING
     </div>
 
+    <div class="loading-process" style="font-size: 10vw; display: none;" id="disconnect_screen">
+        DISCONNECTED
+        <br/>
+        <br/>
+        connect with a new password to continue
+    </div>
+
     <div class="title bigfont">Fursuit controller</div>
 
     <div class="controller controller-closed controller-overlay" id="led-setup">
@@ -1083,12 +1090,24 @@
 
         const new_wifi_passwd1 = document.getElementById("new_wifi_passwd1");
         const new_wifi_passwd2 = document.getElementById("new_wifi_passwd2");
-        const apply_wifi_settings = document.getElementById("apply_wifi_settings")
+        const apply_wifi_settings = document.getElementById("apply_wifi_settings");
+        const disconnect_screen = document.getElementById("disconnect_screen");
+        const developer_info = document.getElementById("developer-info");
 
         apply_wifi_settings.addEventListener("click", () => {
             if (apply_wifi_settings.disabled) return;
             apply_wifi_settings.disabled = true;
             apply_wifi_settings.classList.add("disabled-element");
+
+            const cancel = () => {
+                apply_wifi_settings.disabled = false;
+                apply_wifi_settings.classList.remove("disabled-element");
+            };
+
+            const disconnect_screen_open = () => {
+                disconnect_screen.style.display = '';
+                developer_info.style.zIndex = '';
+            };
 
             const sendList = [];
 
@@ -1099,6 +1118,7 @@
             if (change_password.checked) {
                 if (new_wifi_passwd1.value != new_wifi_passwd2.value) {
                     alert("passwords don't match");
+                    cancel();
                     return;
                 }
                 sendList.push(["change_password", new_wifi_passwd1.value]);
@@ -1111,13 +1131,17 @@
 
                 if (sendListIndex >= sendList.length) {
                     send("apply_wifi_changes");
+                    disconnect_screen_open();
                     return;
                 }
 
                 const sendData = sendList[sendListIndex];
                 send(sendData[0], sendData[1]).then(err => {
                     if (err != "OK") {
-                        send("discard_wifi_changes").then(_ => alert(err));
+                        send("discard_wifi_changes").then(_ => {
+                            alert(err);
+                            cancel();
+                        });
                     } else {
                         sendNext();
                     }
@@ -1144,6 +1168,7 @@
         }
 
         change_name.addEventListener("change", () => update_enabled_wifi_fields());
+        change_password.addEventListener("change", () => update_enabled_wifi_fields());
         update_enabled_wifi_fields();
 
         // --------------------- back to
@@ -1261,7 +1286,7 @@
 
         window.loadEnd = () => {
             document.getElementById("loading-process").style.display = 'none';
-            document.getElementById("developer-info").style.zIndex = 'auto';
+            developer_info.style.zIndex = 'auto';
         };
 
         document.addEventListener('DOMContentLoaded', () => {
