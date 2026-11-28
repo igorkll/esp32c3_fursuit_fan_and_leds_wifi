@@ -440,9 +440,9 @@ static bool apply_wifi_changes = false;
 static char* change_ssid = NULL;
 static char* change_passwd = NULL;
 
-static void* callback_change_ssid(void* user_ctx, char* content, size_t len, size_t* retsize) {
-    const char* ret_str = NULL;
+static const char* ret_str = NULL;
 
+static void callback_change_ssid(void* user_ctx, char* content, size_t len) {
     if (change_ssid) {
         ret_str = "Error 8";
     } else if (len >= WIFI_MAX_SSID_LEN) {
@@ -453,28 +453,10 @@ static void* callback_change_ssid(void* user_ctx, char* content, size_t len, siz
         change_ssid = malloc(len + 1);
         memcpy(change_ssid, content, len);
         change_ssid[len] = '\0';
-        
-        ret_str = "OK";
     }
-
-    size_t _retsize = strlen(ret_str);
-    void* ret = malloc(_retsize);
-    memcpy(ret, ret_str, _retsize);
-    *retsize = _retsize;
-    return ret;
 }
 
-static void* callback_get_ssid(void* user_ctx, char* content, size_t len, size_t* retsize) {
-    size_t _retsize = strlen(currentConfig.wifi_ssid);
-    void* ret = malloc(_retsize);
-    memcpy(ret, currentConfig.wifi_ssid, _retsize);
-    *retsize = _retsize;
-    return ret;
-}
-
-static void* callback_change_password(void* user_ctx, char* content, size_t len, size_t* retsize) {
-    const char* ret_str = NULL;
-
+static void callback_change_password(void* user_ctx, char* content, size_t len) {
     if (change_passwd) {
         ret_str = "Error 8";
     } else if (len >= WIFI_MAX_PASSWD_LEN) {
@@ -485,33 +467,41 @@ static void* callback_change_password(void* user_ctx, char* content, size_t len,
         change_passwd = malloc(len + 1);
         if (len > 0) memcpy(change_passwd, content, len);
         change_passwd[len] = '\0';
-        
+    }
+}
+
+static void* callback_apply_wifi_changes(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    if (!ret_str) {
+        apply_wifi_changes = true;
         ret_str = "OK";
+    } else {
+        if (change_ssid) {
+            free(change_ssid);
+            change_ssid = NULL;
+        }
+
+        if (change_passwd) {
+            free(change_passwd);
+            change_passwd = NULL;
+        }
+        
+        apply_wifi_changes = false;
     }
 
     size_t _retsize = strlen(ret_str);
     void* ret = malloc(_retsize);
     memcpy(ret, ret_str, _retsize);
     *retsize = _retsize;
+    ret_str = NULL;
     return ret;
 }
 
-static void callback_apply_wifi_changes(void* user_ctx, char* content, size_t len) {
-    apply_wifi_changes = true;
-}
-
-static void callback_discard_wifi_changes(void* user_ctx, char* content, size_t len) {
-    if (change_ssid) {
-        free(change_ssid);
-        change_ssid = NULL;
-    }
-
-    if (change_passwd) {
-        free(change_passwd);
-        change_passwd = NULL;
-    }
-
-    apply_wifi_changes = false;
+static void* callback_get_ssid(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    size_t _retsize = strlen(currentConfig.wifi_ssid);
+    void* ret = malloc(_retsize);
+    memcpy(ret, currentConfig.wifi_ssid, _retsize);
+    *retsize = _retsize;
+    return ret;
 }
 
 void app_main() {
@@ -561,11 +551,10 @@ void app_main() {
     wifi_attachCallback_get("/get_en_fan", callback_get_en_fan, NULL);
     wifi_attachCallback_get("/get_dis_fan", callback_get_dis_fan, NULL);
 
-    wifi_attachCallback_get("/change_ssid", callback_change_ssid, NULL);
+    wifi_attachCallback_post("/change_ssid", callback_change_ssid, NULL);
+    wifi_attachCallback_post("/change_password", callback_change_password, NULL);
+    wifi_attachCallback_get("/apply_wifi_changes", callback_apply_wifi_changes, NULL);
     wifi_attachCallback_get("/get_ssid", callback_get_ssid, NULL);
-    wifi_attachCallback_get("/change_password", callback_change_password, NULL);
-    wifi_attachCallback_post("/apply_wifi_changes", callback_apply_wifi_changes, NULL);
-    wifi_attachCallback_post("/discard_wifi_changes", callback_discard_wifi_changes, NULL);
 
     while (true) {
         service_buttons_check();

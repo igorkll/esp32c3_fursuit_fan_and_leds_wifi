@@ -961,7 +961,7 @@
         }
 
         function fetchCallbackBinary(name, callback) {
-            fetch(`http://${window.location.hostname}/${name}`)
+            fetch(`http://${window.location.hostname}/${name}`, {cache: 'no-store'})
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok')
@@ -975,7 +975,7 @@
         }
 
         function fetchCallback(name, callback) {
-            fetch(`http://${window.location.hostname}/${name}`)
+            fetch(`http://${window.location.hostname}/${name}`, {cache: 'no-store'})
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok')
@@ -1130,22 +1130,20 @@
                 sendListIndex = sendListIndex + 1;
 
                 if (sendListIndex >= sendList.length) {
-                    send("apply_wifi_changes");
-                    disconnect_screen_open();
+                    fetchCallback("apply_wifi_changes", (err) => {
+                        if (err != "OK") {
+                            alert(err);
+                            cancel();
+                        } else {
+                            disconnect_screen_open();
+                        }
+                    });
+                    
                     return;
                 }
 
                 const sendData = sendList[sendListIndex];
-                send(sendData[0], sendData[1]).then(err => {
-                    if (err != "OK") {
-                        send("discard_wifi_changes").then(_ => {
-                            alert(err);
-                            cancel();
-                        });
-                    } else {
-                        sendNext();
-                    }
-                });
+                send(sendData[0], sendData[1]).then(_ => sendNext());
             };
 
             sendNext();
