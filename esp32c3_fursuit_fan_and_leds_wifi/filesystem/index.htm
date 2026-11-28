@@ -682,7 +682,7 @@
         DISCONNECTED
         <br/>
         <br/>
-        connect with a new password to continue
+        connect with a new name and/or password to continue
     </div>
 
     <div class="title bigfont">Fursuit controller</div>
@@ -1070,13 +1070,17 @@
 
         const change_name = document.getElementById("change_name");
         const change_password = document.getElementById("change_password");
-
         const new_wifi_ssid = document.getElementById("new_wifi_ssid");
+        const change_wifi_open = document.getElementById("change-wifi-open");
 
         document.getElementById("separate-button").addEventListener("click", () => selectController("led-setup"));
         document.getElementById("device-settings").addEventListener("click", () => selectController("device-setup"));
         
-        document.getElementById("change-wifi-open").addEventListener("click", () => {
+        change_wifi_open.addEventListener("click", () => {
+            if (change_wifi_open.disabled) return;
+            change_wifi_open.disabled = true;
+            change_wifi_open.classList.add("disabled-element");
+
             change_name.checked = false;
             change_password.checked = false;
 
@@ -1122,6 +1126,12 @@
                     return;
                 }
                 sendList.push(["change_password", new_wifi_passwd1.value]);
+            }
+
+            if (sendList.length == 0) {
+                alert("change either the network name or the password");
+                cancel();
+                return;
             }
 
             let sendListIndex = -1;
@@ -1176,7 +1186,12 @@
         });
 
         document.querySelectorAll(".back-to-device-setup").forEach(element => {
-            element.addEventListener("click", () => selectController("device-setup"));
+            element.addEventListener("click", () => {
+                selectController("device-setup");
+
+                change_wifi_open.disabled = false;
+                change_wifi_open.classList.remove("disabled-element");
+            });
         });
 
         // --------------------- separate menu

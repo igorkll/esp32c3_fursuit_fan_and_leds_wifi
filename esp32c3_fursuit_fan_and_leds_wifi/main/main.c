@@ -437,9 +437,9 @@ static void* callback_get_separate_all(void* user_ctx, char* content, size_t len
 }
 
 static bool apply_wifi_changes = false;
+static time_t apply_wifi_changes_time = 0;
 static char* change_ssid = NULL;
 static char* change_passwd = NULL;
-
 static const char* ret_str = NULL;
 
 static void callback_change_ssid(void* user_ctx, char* content, size_t len) {
@@ -474,9 +474,14 @@ static void callback_change_password(void* user_ctx, char* content, size_t len) 
     ESP_LOGI(TAG, "change password: %i, %s", len, change_passwd ? change_passwd : "(null)");
 }
 
+static time_t time_ms() {
+    return esp_timer_get_time() / 1000;
+}
+
 static void* callback_apply_wifi_changes(void* user_ctx, char* content, size_t len, size_t* retsize) {
     if (!ret_str) {
         apply_wifi_changes = true;
+        apply_wifi_changes_time = time_ms();
         ret_str = "OK";
     } else {
         if (change_ssid) {
@@ -566,7 +571,7 @@ void app_main() {
     while (true) {
         service_buttons_check();
 
-        if (apply_wifi_changes) {
+        if (apply_wifi_changes && time_ms() - apply_wifi_changes_time >= APPLY_WIFI_SETTINGS_DELAY) {
             apply_wifi_changes = false;
 
             ESP_LOGI(TAG, "apply_wifi_changes: %s, %s", change_ssid ? change_ssid : "(null)", change_passwd ? change_passwd : "(null)");
