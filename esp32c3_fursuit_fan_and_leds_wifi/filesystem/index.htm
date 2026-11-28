@@ -665,6 +665,12 @@
             border: 2px solid transparent; 
             background-clip: padding-box;
         }
+
+        .disabled-element {
+            cursor: not-allowed;
+            pointer-events: none;
+            filter: brightness(80%);
+        }
     </style>
 </head>
 <body>
@@ -1058,16 +1064,68 @@
         const change_name = document.getElementById("change_name");
         const change_password = document.getElementById("change_password");
 
+        const new_wifi_ssid = document.getElementById("new_wifi_ssid");
+
         document.getElementById("separate-button").addEventListener("click", () => selectController("led-setup"));
         document.getElementById("device-settings").addEventListener("click", () => selectController("device-setup"));
         
         document.getElementById("change-wifi-open").addEventListener("click", () => {
             change_name.checked = false;
             change_password.checked = false;
-            selectController("wifi-setup")
+
+            fetchCallback("get_ssid", current_ssid => {
+                new_wifi_ssid.value = current_ssid;
+                selectController("wifi-setup");
+            });
         });
 
         // --------------------- wifi setup
+
+        const new_wifi_passwd1 = document.getElementById("new_wifi_passwd1");
+        const new_wifi_passwd2 = document.getElementById("new_wifi_passwd2");
+        const apply_wifi_settings = document.getElementById("apply_wifi_settings")
+
+        apply_wifi_settings.addEventListener("click", () => {
+            if (apply_wifi_settings.disabled) return;
+            apply_wifi_settings.disabled = true;
+            apply_wifi_settings.classList.add("disabled-element");
+
+            const sendList = [];
+
+            if (change_name.checked) {
+                sendList.push(["change_ssid", new_wifi_ssid.value]);
+            }
+
+            if (change_password.checked) {
+                if (new_wifi_passwd1.value != new_wifi_passwd2.value) {
+                    alert("passwords don't match");
+                    return;
+                }
+                sendList.push(["change_password", new_wifi_passwd1.value]);
+            }
+
+            let sendListIndex = -1;
+            let sendNext
+            sendNext = () => {
+                sendListIndex = sendListIndex + 1;
+
+                if (sendListIndex >= sendList.length) {
+                    send("apply_wifi_changes");
+                    return;
+                }
+
+                const sendData = sendList[sendListIndex];
+                send(sendData[0], sendData[1]).then(err => {
+                    if (err != "OK") {
+                        send("discard_wifi_changes").then(_ => alert(err));
+                    } else {
+                        sendNext();
+                    }
+                });
+            };
+
+            sendNext();
+        });
 
         // --------------------- back to
 

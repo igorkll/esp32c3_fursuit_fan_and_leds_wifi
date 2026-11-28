@@ -498,6 +498,20 @@ static void callback_apply_wifi_changes(void* user_ctx, char* content, size_t le
     apply_wifi_changes = true;
 }
 
+static void callback_discard_wifi_changes(void* user_ctx, char* content, size_t len) {
+    if (change_ssid) {
+        free(change_ssid);
+        change_ssid = NULL;
+    }
+
+    if (change_passwd) {
+        free(change_passwd);
+        change_passwd = NULL;
+    }
+
+    apply_wifi_changes = false;
+}
+
 void app_main() {
     boot_button_init();
     service_buttons_check();
@@ -549,6 +563,7 @@ void app_main() {
     wifi_attachCallback_get("/get_ssid", callback_get_ssid, NULL);
     wifi_attachCallback_get("/change_password", callback_change_password, NULL);
     wifi_attachCallback_post("/apply_wifi_changes", callback_apply_wifi_changes, NULL);
+    wifi_attachCallback_post("/discard_wifi_changes", callback_discard_wifi_changes, NULL);
 
     while (true) {
         service_buttons_check();
