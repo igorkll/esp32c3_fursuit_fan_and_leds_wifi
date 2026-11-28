@@ -35,8 +35,6 @@ void wifi_init() {
 
     wifi_config_t wifi_config = {
         .ap = {
-            .ssid = WIFI_NAME,
-            .password = WIFI_PASSWORD,
             .channel = 0,
             .max_connection = 1,
             .authmode = WIFI_AUTH_WPA2_PSK,
@@ -45,6 +43,13 @@ void wifi_init() {
             }
         },
     };
+
+    strncpy((char*)wifi_config.ap.ssid, currentConfig.wifi_ssid, WIFI_MAX_SSID_LEN - 1);
+    wifi_config.ap.ssid[WIFI_MAX_SSID_LEN - 1] = '\0';
+
+    strncpy((char*)wifi_config.ap.password, currentConfig.wifi_passwd, WIFI_MAX_PASSWD_LEN - 1);
+    wifi_config.ap.password[WIFI_MAX_PASSWD_LEN - 1] = '\0';
+
     wifi_config.ap.ssid_len = strlen((char*)wifi_config.ap.ssid);
 
     if (strlen((char*)wifi_config.ap.password) == 0) {

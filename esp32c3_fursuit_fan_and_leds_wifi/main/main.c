@@ -6,28 +6,6 @@
 
 static const char* TAG = "esp32c3_fursuit_fan_and_leds_wifi";
 
-typedef enum {
-    Fan_state_off,
-    Fan_state_on,
-    Fan_state_timer
-} Fan_state;
-
-typedef struct {
-    uint8_t led_count;
-    uint8_t led_light;
-    bool led_state;
-    Fan_state fan_state;
-
-    uint8_t primary_color[3];
-    uint8_t other_colors[MAX_LED_COUNT * 3];
-    bool other_colors_overwrite[MAX_LED_COUNT];
-
-    bool separate_colors_enabled;
-
-    uint16_t en_fan_time;
-    uint16_t dis_fan_time;
-} config_t;
-
 config_t currentConfig;
 static nvs_handle_t nvs;
 
@@ -122,6 +100,14 @@ static int atoi_with_limit(const char* str, int max_length) {
     return (int)(result * sign);
 }
 
+static void set_wifi_ssid_and_passwd(const char* ssid, const char* passwd) {
+    strncpy(currentConfig.wifi_ssid, ssid, WIFI_MAX_SSID_LEN - 1);
+    currentConfig.wifi_ssid[WIFI_MAX_SSID_LEN - 1] = '\0';
+
+    strncpy(currentConfig.wifi_passwd, passwd, WIFI_MAX_PASSWD_LEN - 1);
+    currentConfig.wifi_passwd[WIFI_MAX_PASSWD_LEN - 1] = '\0';
+}
+
 static void load_config() {
     ESP_LOGI(TAG, "loading config...");
     FILE* file = fopen(config_path, "rb");
@@ -132,6 +118,7 @@ static void load_config() {
     } else {
         memset(&currentConfig, 0, sizeof(config_t));
         memcpy(&currentConfig, &defaultConfig, sizeof(config_t));
+        set_wifi_ssid_and_passwd(WIFI_NAME, WIFI_PASSWORD);
         ESP_LOGI(TAG, "loaded default config!");
     }
 }

@@ -14,7 +14,10 @@
 #define LED_ORDER ledstrip_GRB
 #define LED_FREQ 10000000
 
-#define WIFI_NAME "РЫБА"
-#define WIFI_PASSWORD "11221133"
+#define WIFI_NAME "fursuit"
+#define WIFI_PASSWORD "00000000"
 
 #define BOOT_BUTTON_GPIO 9
+
+#define WIFI_MAX_SSID_LEN 32
+#define WIFI_MAX_PASSWD_LEN 64

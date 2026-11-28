@@ -276,6 +276,14 @@
             width: 100px;
         }
 
+        .constsize-wide-title {
+            text-align: start;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            width: 200px;
+        }
+
         .selecter {
             all: unset;
             text-align: center;
@@ -654,6 +662,23 @@
             </div>
         </div>
 
+        <div class="scroll-container" id="separate_scroll_container">
+        </div>
+
+        <div class="big-button" id="reset_separate_colors">
+            Reset separate colors
+        </div>
+    </div>
+
+    <div class="controller controller-closed controller-overlay" id="device-setup">
+        <div class="container maincontainer">
+            <div class="hcontainer">
+                <button class="back-to-main"></button>
+
+                <div class="constsize-wide-title">Device settings</div>
+            </div>
+        </div>
+
         <div class="container">
             <div class="constsize-title">Leds</div>
             <div class="slider-wrap">
@@ -661,14 +686,6 @@
                 <div class="slider-text" id="leds_text"></div>
             </div>
             <button id="leds_reset" class="button restart-icon"></button>
-        </div>
-
-        <div class="scroll-container" id="separate_scroll_container">
-            
-        </div>
-
-        <div class="big-button" id="reset_separate_colors">
-            reset separate colors
         </div>
     </div>
 
@@ -702,13 +719,13 @@
             </div>
 
             <div class="vcontainer">
-                <div class="title smallfont">primary</div>
+                <div class="title smallfont">Primary</div>
                 <input class="colorpicker" type="color" id="primary_color">
             </div>
             
             <div class="vcontainer">
-                <div class="title smallfont">separate</div>
-                <button class="button-flat" id="separate-button">LEDS</button>
+                <div class="title smallfont">Separate</div>
+                <button class="button-flat" id="separate-button">Set</button>
             </div>
         </div>
 
@@ -740,6 +757,10 @@
                 <div class="slider-text" id="dis_fan_text"></div>
             </div>
             <button id="dis_fan_reset" class="button restart-icon"></button>
+        </div>
+
+        <div class="big-button" id="device-settings">
+            Device settings
         </div>
     </div>
 
@@ -954,9 +975,13 @@
         const leds_slider = document.getElementById("leds_slider");
         bindSlider(leds_slider, 'leds_reset', 'leds_text', 16, sliderFormatByte, "set_led_count", true, ledsCount => realloc_elements_count(ledsCount));
 
-        // --------------------- separate menu open & close
+        // --------------------- sub menu open
 
         document.getElementById("separate-button").addEventListener("click", () => selectController("led-setup"));
+        document.getElementById("device-settings").addEventListener("click", () => selectController("device-setup"));
+
+        // --------------------- back to main
+
         document.querySelectorAll(".back-to-main").forEach(element => {
             element.addEventListener("click", () => selectController("main-setup"))
         })
