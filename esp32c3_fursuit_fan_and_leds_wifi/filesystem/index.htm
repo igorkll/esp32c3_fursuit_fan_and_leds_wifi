@@ -163,7 +163,7 @@
         }
 
 
-        .back-to-main {
+        .back-to {
             background-color: rgb(209, 32, 32);
             border: none;
             cursor: pointer;
@@ -189,7 +189,7 @@
             background-size: contain;
         }
 
-        .back-to-main:active {
+        .back-to:active {
             background-color: rgb(133, 12, 12);
         }
 
@@ -648,8 +648,7 @@
     <div class="controller controller-closed controller-overlay" id="led-setup">
         <div class="container maincontainer">
             <div class="hcontainer">
-                <button class="back-to-main"></button>
-
+                <button class="back-to back-to-main"></button>
                 <div class="constsize-title">Separate colors</div>
             </div>
 
@@ -670,10 +669,19 @@
         </div>
     </div>
 
+    <div class="controller controller-closed controller-overlay" id="wifi-setup">
+        <div class="container maincontainer">
+            <div class="hcontainer">
+                <button class="back-to back-to-device-setup"></button>
+                <div class="constsize-wide-title">Wifi setup</div>
+            </div>
+        </div>
+    </div>
+
     <div class="controller controller-closed controller-overlay" id="device-setup">
         <div class="container maincontainer">
             <div class="hcontainer">
-                <button class="back-to-main"></button>
+                <button class="back-to back-to-main"></button>
 
                 <div class="constsize-wide-title">Device settings</div>
             </div>
@@ -985,11 +993,15 @@
         document.getElementById("device-settings").addEventListener("click", () => selectController("device-setup"));
         document.getElementById("change-wifi-open").addEventListener("click", () => selectController("wifi-setup"));
 
-        // --------------------- back to main
+        // --------------------- back to
 
         document.querySelectorAll(".back-to-main").forEach(element => {
-            element.addEventListener("click", () => selectController("main-setup"))
-        })
+            element.addEventListener("click", () => selectController("main-setup"));
+        });
+
+        document.querySelectorAll(".back-to-device-setup").forEach(element => {
+            element.addEventListener("click", () => selectController("device-setup"));
+        });
 
         // --------------------- separate menu
 
