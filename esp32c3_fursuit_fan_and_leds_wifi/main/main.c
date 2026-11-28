@@ -479,6 +479,8 @@ static void* callback_change_password(void* user_ctx, char* content, size_t len,
         ret_str = "Error 8";
     } else if (len >= WIFI_MAX_PASSWD_LEN) {
         ret_str = "the network password cannot be more than 63 bytes";
+    } else if (len < 8 && len > 0) {
+        ret_str = "the password must be either empty or at least 8 characters long";
     } else {
         change_passwd = malloc(len + 1);
         if (len > 0) memcpy(change_passwd, content, len);
