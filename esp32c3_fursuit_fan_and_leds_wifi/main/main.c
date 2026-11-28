@@ -454,6 +454,8 @@ static void callback_change_ssid(void* user_ctx, char* content, size_t len) {
         memcpy(change_ssid, content, len);
         change_ssid[len] = '\0';
     }
+
+    ESP_LOGI(TAG, "change ssid: %i, %s", len, change_ssid ? change_ssid : "(null)");
 }
 
 static void callback_change_password(void* user_ctx, char* content, size_t len) {
@@ -468,6 +470,8 @@ static void callback_change_password(void* user_ctx, char* content, size_t len) 
         if (len > 0) memcpy(change_passwd, content, len);
         change_passwd[len] = '\0';
     }
+
+    ESP_LOGI(TAG, "change password: %i, %s", len, change_passwd ? change_passwd : "(null)");
 }
 
 static void* callback_apply_wifi_changes(void* user_ctx, char* content, size_t len, size_t* retsize) {
@@ -488,6 +492,8 @@ static void* callback_apply_wifi_changes(void* user_ctx, char* content, size_t l
         apply_wifi_changes = false;
     }
 
+    ESP_LOGI(TAG, "apply wifi changes: %i, %s, %s, %s", (int)apply_wifi_changes, ret_str ? ret_str : "(null)", change_ssid ? change_ssid : "(null)", change_passwd ? change_passwd : "(null)");
+
     size_t _retsize = strlen(ret_str);
     void* ret = malloc(_retsize);
     memcpy(ret, ret_str, _retsize);
@@ -497,6 +503,7 @@ static void* callback_apply_wifi_changes(void* user_ctx, char* content, size_t l
 }
 
 static void* callback_get_ssid(void* user_ctx, char* content, size_t len, size_t* retsize) {
+    ESP_LOGI(TAG, "get ssid: %s", currentConfig.wifi_ssid);
     size_t _retsize = strlen(currentConfig.wifi_ssid);
     void* ret = malloc(_retsize);
     memcpy(ret, currentConfig.wifi_ssid, _retsize);
@@ -562,6 +569,8 @@ void app_main() {
         if (apply_wifi_changes) {
             apply_wifi_changes = false;
 
+            ESP_LOGI(TAG, "apply_wifi_changes: %s, %s", change_ssid ? change_ssid : "(null)", change_passwd ? change_passwd : "(null)");
+
             if (change_ssid) {
                 set_wifi_ssid(change_ssid);
                 free(change_ssid);
@@ -573,6 +582,8 @@ void app_main() {
                 free(change_passwd);
                 change_passwd = NULL;
             }
+
+            ESP_LOGI(TAG, "new settings: %s, %s", currentConfig.wifi_ssid, currentConfig.wifi_passwd);
 
             save_config();
             wifi_reloadSettings();
