@@ -33,32 +33,9 @@ void wifi_init() {
         return;
     }
 
-    wifi_config_t wifi_config = {
-        .ap = {
-            .channel = 0,
-            .max_connection = 1,
-            .authmode = WIFI_AUTH_WPA2_PSK,
-            .pmf_cfg = {
-                .required = false,
-            }
-        },
-    };
-
-    strncpy((char*)wifi_config.ap.ssid, currentConfig.wifi_ssid, WIFI_MAX_SSID_LEN - 1);
-    wifi_config.ap.ssid[WIFI_MAX_SSID_LEN - 1] = '\0';
-
-    strncpy((char*)wifi_config.ap.password, currentConfig.wifi_passwd, WIFI_MAX_PASSWD_LEN - 1);
-    wifi_config.ap.password[WIFI_MAX_PASSWD_LEN - 1] = '\0';
-
-    wifi_config.ap.ssid_len = strlen((char*)wifi_config.ap.ssid);
-
-    if (strlen((char*)wifi_config.ap.password) == 0) {
-        wifi_config.ap.authmode = WIFI_AUTH_OPEN;
-    }
-
     esp_netif_create_default_wifi_ap();
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
+    wifi_reloadSettings();
     ESP_ERROR_CHECK(esp_wifi_start());
 
     // server
@@ -84,6 +61,34 @@ void wifi_init() {
     wifi_attachCallback_getConst("/icon3.png", "/storage/icon3.png");
 
     ESP_LOGI(TAG, "wifi & server initialization done!");
+}
+
+void wifi_reloadSettings() {
+    wifi_config_t wifi_config = {
+        .ap = {
+            .channel = 0,
+            .max_connection = 1,
+            .authmode = WIFI_AUTH_WPA2_PSK,
+            .pmf_cfg = {
+                .required = false,
+            }
+        },
+    };
+
+    strncpy((char*)wifi_config.ap.ssid, currentConfig.wifi_ssid, WIFI_MAX_SSID_LEN - 1);
+    wifi_config.ap.ssid[WIFI_MAX_SSID_LEN - 1] = '\0';
+
+    strncpy((char*)wifi_config.ap.password, currentConfig.wifi_passwd, WIFI_MAX_PASSWD_LEN - 1);
+    wifi_config.ap.password[WIFI_MAX_PASSWD_LEN - 1] = '\0';
+
+    wifi_config.ap.ssid_len = strlen((char*)wifi_config.ap.ssid);
+
+    if (strlen((char*)wifi_config.ap.password) == 0) {
+        wifi_config.ap.authmode = WIFI_AUTH_OPEN;
+    }
+
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
+    ESP_LOGI(TAG, "wifi change settings");
 }
 
 int wifi_getUsersCount() {
