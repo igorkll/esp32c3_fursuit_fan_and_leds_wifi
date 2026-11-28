@@ -876,6 +876,70 @@
     <script>
         const max_leds_count = 32;
 
+        function bindLongPress(element, callback, delay=600, captureButton=0) {
+            let timerId = null;
+            let lastActualEvent = null;
+
+            const start = () => {
+                if (timerId != null) return;
+                timerId = setTimeout(() => {
+                    timerId = null;
+                    callback(lastActualEvent);
+                }, delay);
+            };
+
+            const cancel = (e) => {
+                if (e && (!lastActualEvent || e.pointerId != lastActualEvent.pointerId)) return;
+
+                if (timerId != null) clearTimeout(timerId);
+                
+                timerId = null;
+                lastActualEvent = null;
+            };
+
+            const controller = new AbortController()
+            const listenerOptions = { signal: controller.signal };
+
+            element.addEventListener("pointerdown", (e) => {
+                if (e.button != captureButton || lastActualEvent) return;
+                lastActualEvent = e;
+                start();
+            }, listenerOptions);
+
+            element.addEventListener("pointermove", (e) => {
+                if (!lastActualEvent || e.pointerId != lastActualEvent.pointerId) return;
+                lastActualEvent = e;
+            }, listenerOptions);
+
+            element.addEventListener("pointerup", cancel, listenerOptions);
+            element.addEventListener("pointercancel", cancel, listenerOptions);
+            element.addEventListener("lostpointercapture", cancel, listenerOptions);
+
+            element.addEventListener("contextmenu", (e) => {
+                e.preventDefault();
+            }, listenerOptions);
+
+            element.addEventListener("selectstart", (e) => {
+                e.preventDefault();
+            }, listenerOptions);
+
+            controller.signal.addEventListener("abort", () => cancel(), { once: true });
+            return () => controller.abort();
+        }
+
+        function bindLongPress_sliderEdit(slider) {
+            bindLongPress(slider, () => {
+                const result = prompt(`Enter slider value (${slider.min} - ${slider.max}):`, slider.value);
+                if (result != null) {
+                    if (slider._setValue) {
+                        slider._setValue(result);
+                    } else {
+                        slider.value = result;
+                    }
+                }
+            });
+        }
+
         function bindMultiSwitch(element, positionsCount, changePositionCallback) {
             let position = 0;
 
@@ -959,8 +1023,10 @@
 
             slider._setValue = (value) => {
                 slider.value = value;
-                textObj.textContent = value;
+                textObj.textContent = slider.value;
             };
+
+            bindLongPress_sliderEdit(slider);
         }
 
         function sliderFormatByte(value) {
