@@ -773,7 +773,7 @@
         <div class="container">
             <div class="constsize-title">Leds</div>
             <div class="slider-wrap">
-                <input type="range" min="1" max="32" value="0" class="slider" id="leds_slider">
+                <input type="range" min="1" max="1" value="0" class="slider" id="leds_slider">
                 <div class="slider-text" id="leds_text"></div>
             </div>
             <button id="leds_reset" class="button restart-icon"></button>
@@ -814,12 +814,17 @@
             </div>
 
             <div class="vcontainer">
-                <div class="title smallfont">Primary</div>
+                <div class="title smallfont">Main</div>
                 <input class="colorpicker" type="color" id="primary_color">
             </div>
             
             <div class="vcontainer">
-                <div class="title smallfont">Separate</div>
+                <div class="title smallfont">Sep</div>
+                <button class="button-flat" id="separate-button">Set</button>
+            </div>
+
+            <div class="vcontainer">
+                <div class="title smallfont">Anim</div>
                 <button class="button-flat" id="separate-button">Set</button>
             </div>
         </div>
@@ -869,6 +874,8 @@
     </div>
 
     <script>
+        const max_leds_count = 32;
+
         function bindMultiSwitch(element, positionsCount, changePositionCallback) {
             let position = 0;
 
@@ -1068,6 +1075,7 @@
         let realloc_elements_count;
 
         const leds_slider = document.getElementById("leds_slider");
+        leds_slider.max = max_leds_count;
         bindSlider(leds_slider, 'leds_reset', 'leds_text', 16, sliderFormatByte, "set_led_count", true, ledsCount => realloc_elements_count(ledsCount));
 
         // --------------------- sub menu open
