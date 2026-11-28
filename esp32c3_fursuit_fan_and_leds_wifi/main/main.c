@@ -444,6 +444,8 @@ static void* callback_change_ssid(void* user_ctx, char* content, size_t len, siz
 
     if (len >= WIFI_MAX_SSID_LEN) {
         ret_str = "the network name cannot be more than 31 bytes";
+    } else if (len == 0) {
+        ret_str = "the network name cannot be empty";
     } else {
         change_ssid = malloc(len + 1);
         memcpy(change_ssid, content, len);
@@ -466,7 +468,7 @@ static void* callback_change_password(void* user_ctx, char* content, size_t len,
         ret_str = "the network password cannot be more than 63 bytes";
     } else {
         change_passwd = malloc(len + 1);
-        memcpy(change_passwd, content, len);
+        if (len > 0) memcpy(change_passwd, content, len);
         change_passwd[len] = '\0';
         
         ret_str = "OK";
@@ -535,6 +537,7 @@ void app_main() {
         if (change_ssid || change_passwd) {
             if (change_ssid) set_wifi_ssid(change_ssid);
             if (change_passwd) set_wifi_passwd(change_passwd);
+            save_config();
             wifi_reloadSettings();
 
             change_ssid = NULL;
